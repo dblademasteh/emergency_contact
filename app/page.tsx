@@ -629,6 +629,15 @@ export default function Page() {
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <ThemeToggle />
+          {!isEditor && (
+            <a
+              href="/login"
+              aria-label="Sign in"
+              className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-rose-600 to-red-600 px-4 py-2 text-sm font-bold text-white shadow-md shadow-rose-600/25 transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
+            >
+              Sign in
+            </a>
+          )}
           <InstallButton />
           {isAdmin && (
             <span className="hidden rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white sm:inline">
