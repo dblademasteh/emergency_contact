@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Emergency Contacts — Deployment Guide</title>
+<style>
+  :root {
+    --accent: #dc2626;      /* emergency red */
+    --ink: #1f2937;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --code-bg: #f3f4f6;
+    --head-bg: #111827;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    line-height: 1.55;
+    margin: 0;
+    padding: 40px 48px;
+    font-size: 13px;
+  }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 {
+    font-size: 16px;
+    margin: 26px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent);
+    color: var(--head-bg);
+  }
+  h3 { font-size: 14px; margin: 16px 0 6px; }
+  p { margin: 6px 0; }
+  .muted { color: var(--muted); }
+  .lead { font-size: 14px; color: var(--muted); margin-top: 2px; }
+  code {
+    font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    margin: 8px 0;
+  }
+  pre code { background: none; padding: 0; }
+  ul, ol { margin: 6px 0 6px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 10px 0;
+    background: #fafafa;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: #fff;
+  }
+  .tag.red { background: var(--accent); }
+  .tag.green { background: #16a34a; }
+  .tag.blue { background: #2563eb; }
+  .tag.gray { background: #6b7280; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 12px; }
+  th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
+  th { background: var(--head-bg); color: #fff; }
+  tr:nth-child(even) td { background: #fafafa; }
+  .step { margin: 6px 0; }
+  .step b { color: var(--accent); }
+  .page-break { page-break-before: always; }
+  .header-band {
+    background: var(--head-bg);
+    color: #fff;
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
+  }
+  .header-band h1 { color: #fff; }
+  .header-band .lead { color: #c7d2fe; }
+  .foot { margin-top: 28px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+  @media print {
+    body { padding: 12px 20px; }
+    pre { white-space: pre-wrap; word-wrap: break-word; }
+    h2 { page-break-after: avoid; }
+    .card, pre { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header-band">
+  <h1>🚨 Emergency Contacts — Deployment Guide</h1>
+  <div class="lead">How to update, deploy, and access your app from anywhere on your Synology NAS</div>
+</div>
+
+<h2>1 · Your Setup at a Glance</h2>
+<div class="card">
+  <table>
+    <tr><th>Piece</th><th>Where it lives</th></tr>
+    <tr><td>App</td><td>Next.js + PostgreSQL, running in Docker on your NAS</td></tr>
+    <tr><td>Source code</td><td>GitHub — <code>github.com/dblademasteh/emergency_contact</code> (branch <code>main</code>)</td></tr>
+    <tr><td>NAS folder</td><td><code>/volume1/docker/emergency_contact</code></td></tr>
+    <tr><td>Local access</td><td><code>http://192.168.0.148:8080</code> (login: <code>/login</code>)</td></tr>
+    <tr><td>Outside access</td><td>Cloudflare Tunnel — public HTTPS URL, no port forwarding</td></tr>
+  </table>
+</div>
+
+<h2>2 · Deploy Changes to Production</h2>
+<p><span class="tag red">Step 1</span> &nbsp;On your PC — commit &amp; push after editing:</p>
+<pre><code>git add -A
+git commit -m "describe your change"
+git push</code></pre>
+<p><span class="tag red">Step 2</span> &nbsp;SSH into the NAS, then pull the new code:</p>
+<pre><code>ssh bfpr2@192.168.0.148
+cd /volume1/docker/emergency_contact
+git pull</code></pre>
+<p><span class="tag red">Step 3</span> &nbsp;Rebuild &amp; restart the app container:</p>
+<pre><code>sudo docker compose up -d --build</code></pre>
+<div class="card"><b>Tip:</b> Database migrations run automatically on container start — you don't need to run them manually.</div>
+
+<h2>3 · Access From Outside the Network</h2>
+<p><span class="tag green">Live URL</span> &nbsp;Your app is already exposed via a Cloudflare Tunnel:</p>
+<pre><code>https://26239e73-fdc0-4272-b1c5-6b5ef0a57a5d.cfargotunnel.com
+Login page: https://26239e73-fdc0-4272-b1c5-6b5ef0a57a5d.cfargotunnel.com/login</code></pre>
+<p>Check the tunnel is running (on the NAS):</p>
+<pre><code>sudo docker compose ps</code></pre>
+<p>Look for <code>emergency-contacts-cloudflared</code> as <b>Up</b>. If not, start everything with <code>sudo docker compose up -d</code>.</p>
+<p>Test from your phone on mobile data (Wi-Fi off) to confirm it works outside your home.</p>
+
+<h2 class="page-break">4 · Admin Access to the NAS From Anywhere</h2>
+<p>To deploy, you need a shell on the NAS — not just the app. Three ways, easiest first:</p>
+<h3>Option A — Synology QuickConnect (no extra software)</h3>
+<ul>
+  <li>Enable: <b>Control Panel → External Access → QuickConnect</b> → sign in with a Synology Account</li>
+  <li>From anywhere open <code>https://quickconnect.to/&lt;your-id&gt;</code> → log into DSM</li>
+  <li>Open the <b>Terminal</b> app (Main Menu) → you're at the NAS shell → run the deploy commands</li>
+</ul>
+<h3>Option B — SSH via QuickConnect (use your PC's terminal)</h3>
+<pre><code>ssh -p &lt;port&gt; bfpr2@&lt;your-id&gt;.quickconnect.to</code></pre>
+<p>Find <code>&lt;port&gt;</code> and <code>&lt;your-id&gt;</code> in <b>Control Panel → External Access → QuickConnect → Advanced</b> (enable SSH there).</p>
+<h3>Option C — Tailscale (recommended for speed)</h3>
+<ul>
+  <li>Install the Tailscale package on the NAS and app on your devices</li>
+  <li>Gives the NAS a stable IP that works from anywhere (peer-to-peer, faster than QuickConnect)</li>
+  <li>Then SSH normally and deploy</li>
+</ul>
+
+<h2>5 · Deploying a New Project</h2>
+<p>Use this app as your template — same recipe every time:</p>
+<pre><code>sudo mkdir /volume1/docker/mynewapp
+cd /volume1/docker/mynewapp
+git clone https://github.com/you/mynewapp.git .
+sudo cp /volume1/docker/emergency_contact/.env ./.env        # then edit passwords + DB name
+sudo cp /volume1/docker/emergency_contact/Dockerfile .
+sudo cp /volume1/docker/emergency_contact/docker-compose.yml .</code></pre>
+<p>Then edit <code>docker-compose.yml</code>: change the <code>name:</code>, <code>container_name</code>, and <code>ports</code> (e.g. <code>8081:3000</code>) so it doesn't clash. Build &amp; start:</p>
+<pre><code>sudo docker compose up -d --build</code></pre>
+<p>For public access, copy the <code>cloudflared</code> service block from this project's compose and create a new tunnel.</p>
+
+<h2>6 · Quick Command Reference</h2>
+<table>
+  <tr><th>Task</th><th>Command</th></tr>
+  <tr><td>Deploy app changes</td><td><code>git pull && sudo docker compose up -d --build</code></td></tr>
+  <tr><td>Just restart (no code change)</td><td><code>sudo docker compose up -d</code></td></tr>
+  <tr><td>See container status</td><td><code>sudo docker compose ps</code></td></tr>
+  <tr><td>View app logs</td><td><code>sudo docker compose logs -f app</code></td></tr>
+  <tr><td>Create admin accounts (prints credentials)</td><td><code>sudo docker compose exec app npx prisma db seed</code></td></tr>
+  <tr><td>Rebuild everything from scratch</td><td><code>sudo docker compose down && sudo docker compose up -d --build</code></td></tr>
+</table>
+
+<h2>7 · Troubleshooting</h2>
+<h3>Seed error: <code>Cannot find module '../lib/passwords'</code></h3>
+<p>The container was missing the <code>lib/</code> folder. Quick fix without rebuilding:</p>
+<pre><code>sudo docker cp /volume1/docker/emergency_contact/lib emergency-contacts:/app/
+sudo docker compose exec app npx prisma db seed</code></pre>
+<p>The <code>Dockerfile</code> has been updated to copy <code>lib/</code>, so a normal rebuild prevents this permanently.</p>
+<h3>Forgot the admin password?</h3>
+<p>There is no default password. Re-run the seed — it creates <code>admin1</code>, <code>admin2</code>, <code>admin3</code> with random passwords printed to the console. Copy them immediately (shown only once).</p>
+
+<div class="foot">Generated from the Emergency Contacts project — keep this file on your phone for quick reference.</div>
+
+</body>
+</html>

@@ -20,6 +20,9 @@
 # production
 /build
 
+# build artifacts
+tsconfig.tsbuildinfo
+
 # misc
 .DS_Store
 *.pem
@@ -38,3 +41,6 @@ yarn-error.log*
 
 # cloudflare tunnel credentials & config (machine-specific, never commit)
 /cloudflared
+
+# local PDF generator (tools/pdf/node_modules is large; regenerate on demand)
+/tools/pdf/node_modules

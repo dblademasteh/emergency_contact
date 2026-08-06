@@ -120,3 +120,27 @@ export function FacebookIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function PillIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M16.28 1.72a3 3 0 0 0-4.24 0L2.03 11.43a3 3 0 0 0 0 4.24l5.42 5.42a3 3 0 0 0 4.24 0l10.01-10.01a3 3 0 0 0 0-4.24l-5.42-5.42zM7.97 16.7 2.79 11.52l4.24-4.24 5.18 5.18-4.24 4.24z" />
+    </svg>
+  );
+}
+
+export function LogOutIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3M16 17l5-5-5-5M21 12H9" />
+    </svg>
+  );
+}
+
+export function ImageIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm12.5 6-4.5-4.5L7 21h14v-5z" />
+    </svg>
+  );
+}

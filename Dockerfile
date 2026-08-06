@@ -40,6 +40,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/lib ./lib
 COPY --chown=nextjs:nodejs prisma.config.ts ./prisma.config.ts
 COPY --chown=nextjs:nodejs tsconfig.json ./tsconfig.json
 

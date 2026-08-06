@@ -6,14 +6,20 @@ datasource db {
   provider = "postgresql"
 }
 
-enum ContactType {
-  EMERGENCY
-  POLICE
-  FIRE
-  MEDICAL
-  FAMILY
-  UTILITY
-  OTHER
+model ContactType {
+  value     String   @id
+  label     String
+  color     String   @default("slate")
+  icon      String   @default("more")
+  sortOrder Int      @default(0)
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contacts Contact[]
+  groups   Group[]
+
+  @@map("contact_types")
 }
 
 model Admin {
@@ -27,18 +33,19 @@ model Admin {
 }
 
 model Group {
-  id        String      @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  type      ContactType @default(OTHER)
+  type      String   @default("OTHER")
   logoUrl   String?
   parentId  String?
-  sortOrder Int         @default(0)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  parent   Group?    @relation("GroupTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children Group[]   @relation("GroupTree")
+  parent   Group?       @relation("GroupTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Group[]      @relation("GroupTree")
   contacts Contact[]
+  typeInfo ContactType @relation(fields: [type], references: [value])
 
   @@index([parentId, sortOrder])
   @@index([type])
@@ -46,24 +53,33 @@ model Group {
 }
 
 model Contact {
-  id          String      @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   phone       String
-  type        ContactType @default(OTHER)
+  type        String   @default("OTHER")
   note        String?
   logoUrl     String?
   latitude    Float?
   longitude   Float?
   facebookUrl String?
-  isPrimary   Boolean     @default(false)
-  sortOrder   Int         @default(0)
+  isPrimary   Boolean  @default(false)
+  sortOrder   Int      @default(0)
   groupId     String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  group Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group    Group?      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  typeInfo ContactType @relation(fields: [type], references: [value])
 
   @@index([type, sortOrder])
   @@index([groupId])
   @@map("contacts")
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
 }

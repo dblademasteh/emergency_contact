@@ -1,11 +1,12 @@
 "use client";
 
-import { CATEGORY_STYLES, CONTACT_TYPES, type ContactTypeValue } from "@/lib/contacts";
+import { categoryStyle, type ContactType } from "@/lib/contact-types";
 import { FolderIcon, ChevronRightIcon, EditIcon, TrashIcon } from "@/components/icons";
 
 type Props = {
   name: string;
-  type: ContactTypeValue;
+  type: string;
+  types: ContactType[];
   logoUrl?: string | null;
   contactCount: number;
   childCount: number;
@@ -18,6 +19,7 @@ type Props = {
 export function GroupCard({
   name,
   type,
+  types,
   logoUrl,
   contactCount,
   childCount,
@@ -26,8 +28,9 @@ export function GroupCard({
   onEdit,
   onDelete,
 }: Props) {
-  const styles = CATEGORY_STYLES[type];
-  const label = CONTACT_TYPES.find((t) => t.value === type)?.label ?? "Other";
+  const typeInfo = types.find((t) => t.value === type);
+  const styles = categoryStyle(typeInfo?.color ?? "slate");
+  const label = typeInfo?.label ?? "Other";
   const subCount =
     childCount > 0 && contactCount > 0
       ? `${childCount} sub ${childCount === 1 ? "group" : "groups"} · ${contactCount} ${contactCount === 1 ? "contact" : "contacts"}`

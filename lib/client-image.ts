@@ -5,8 +5,11 @@ export const ACCEPTED_LOGO_TYPES = [
   "image/gif",
 ];
 
-export const MAX_LOGO_SOURCE_SIZE = 2_000_000;
+export const MAX_LOGO_SOURCE_SIZE = 20_000_000;
 export const MAX_LOGO_DIMENSION = 512;
+
+export const MAX_BANNER_SOURCE_SIZE = 20_000_000;
+export const MAX_BANNER_DIMENSION = 1600;
 
 export function readImageAsDataUrl(
   file: File,

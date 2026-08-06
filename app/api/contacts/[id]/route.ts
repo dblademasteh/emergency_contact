@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ContactType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { parseContactInput } from "@/lib/contacts";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
@@ -33,7 +32,7 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "Contact not found." }, { status: 404 });
   }
 
-  let groupType: ContactType | null = null;
+  let type = data.type;
   if (data.groupId) {
     const group = await prisma.group.findUnique({
       where: { id: data.groupId },
@@ -44,7 +43,17 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
         { status: 400 }
       );
     }
-    groupType = group.type;
+    type = group.type;
+  } else {
+    const typeInfo = await prisma.contactType.findUnique({
+      where: { value: data.type },
+    });
+    if (!typeInfo) {
+      return NextResponse.json(
+        { error: "Category not found." },
+        { status: 400 }
+      );
+    }
   }
 
   const contact = await prisma.contact.update({
@@ -52,7 +61,7 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     data: {
       name: data.name,
       phone: data.phone,
-      type: (groupType ?? data.type) as ContactType,
+      type,
       note: data.note ?? null,
       latitude: data.latitude,
       longitude: data.longitude,

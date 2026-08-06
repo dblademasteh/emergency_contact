@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ContactType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { parseGroupInput } from "@/lib/groups";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
@@ -67,11 +66,21 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     }
   }
 
+  const typeInfo = await prisma.contactType.findUnique({
+    where: { value: data.type },
+  });
+  if (!typeInfo) {
+    return NextResponse.json(
+      { error: "Category not found." },
+      { status: 400 }
+    );
+  }
+
   const group = await prisma.group.update({
     where: { id },
     data: {
       name: data.name,
-      type: data.type as ContactType,
+      type: data.type,
       parentId: data.parentId,
     },
   });

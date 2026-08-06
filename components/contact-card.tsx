@@ -1,6 +1,7 @@
 "use client";
 
-import { CATEGORY_STYLES, CONTACT_TYPES, type Contact } from "@/lib/contacts";
+import type { Contact } from "@/lib/contacts";
+import { categoryStyle, type ContactType } from "@/lib/contact-types";
 import {
   EditIcon,
   FacebookIcon,
@@ -11,15 +12,22 @@ import {
 
 type Props = {
   contact: Contact;
+  types: ContactType[];
   canEdit?: boolean;
   onEdit: (contact: Contact) => void;
   onDelete: (contact: Contact) => void;
 };
 
-export function ContactCard({ contact, canEdit = false, onEdit, onDelete }: Props) {
-  const styles = CATEGORY_STYLES[contact.type];
-  const label =
-    CONTACT_TYPES.find((t) => t.value === contact.type)?.label ?? "Other";
+export function ContactCard({
+  contact,
+  types,
+  canEdit = false,
+  onEdit,
+  onDelete,
+}: Props) {
+  const typeInfo = types.find((t) => t.value === contact.type);
+  const styles = categoryStyle(typeInfo?.color ?? "slate");
+  const label = typeInfo?.label ?? "Other";
   const href = `tel:${contact.phone.replace(/\s+/g, "")}`;
 
   return (

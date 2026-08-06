@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ContactType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { parseGroupInput } from "@/lib/groups";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
@@ -7,7 +6,7 @@ import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 export async function GET(request: NextRequest) {
   const type = request.nextUrl.searchParams.get("type") ?? "";
   const groups = await prisma.group.findMany({
-    where: type ? { type: type as ContactType } : {},
+    where: type ? { type } : {},
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
   return NextResponse.json(groups);
@@ -40,10 +39,20 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  const typeInfo = await prisma.contactType.findUnique({
+    where: { value: data.type },
+  });
+  if (!typeInfo) {
+    return NextResponse.json(
+      { error: "Category not found." },
+      { status: 400 }
+    );
+  }
+
   const group = await prisma.group.create({
     data: {
       name: data.name,
-      type: data.type as ContactType,
+      type: data.type,
       parentId: data.parentId,
     },
   });

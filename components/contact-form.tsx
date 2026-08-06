@@ -1,13 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  CATEGORY_STYLES,
-  CONTACT_TYPES,
-  type Contact,
-  type ContactInput,
-  type ContactTypeValue,
-} from "@/lib/contacts";
+import type { Contact, ContactInput } from "@/lib/contacts";
+import { categoryStyle, type ContactType } from "@/lib/contact-types";
 import {
   ACCEPTED_LOGO_TYPES,
   MAX_LOGO_SOURCE_SIZE,
@@ -18,9 +13,10 @@ import { XIcon } from "@/components/icons";
 type Props = {
   open: boolean;
   initial: Contact | null;
-  groups: { id: string; label: string; type: ContactTypeValue }[];
+  types: ContactType[];
+  groups: { id: string; label: string; type: string }[];
   defaultGroupId: string | null;
-  defaultType?: ContactTypeValue;
+  defaultType?: string;
   onClose: () => void;
   onSave: (
     input: ContactInput,
@@ -31,6 +27,7 @@ type Props = {
 export function ContactForm({
   open,
   initial,
+  types,
   groups,
   defaultGroupId,
   defaultType,
@@ -39,8 +36,8 @@ export function ContactForm({
 }: Props) {
   const [name, setName] = useState(initial?.name ?? "");
   const [phone, setPhone] = useState(initial?.phone ?? "");
-  const [type, setType] = useState<ContactTypeValue>(
-    initial?.type ?? defaultType ?? "EMERGENCY"
+  const [type, setType] = useState<string>(
+    initial?.type ?? defaultType ?? types[0]?.value ?? "OTHER"
   );
   const [note, setNote] = useState(initial?.note ?? "");
   const [logoData, setLogoData] = useState<string | null>(
@@ -138,7 +135,7 @@ export function ContactForm({
       return;
     }
     if (file.size > MAX_LOGO_SOURCE_SIZE) {
-      setLogoError("Image must be 2 MB or smaller.");
+      setLogoError("Image must be 20 MB or smaller.");
       return;
     }
     readImageAsDataUrl(file)
@@ -214,7 +211,7 @@ export function ContactForm({
                 ) : (
                   <span
                     aria-hidden="true"
-                    className={`h-3.5 w-3.5 rounded-full ${CATEGORY_STYLES[type].dot}`}
+                    className={`h-3.5 w-3.5 rounded-full ${categoryStyle(types.find((t) => t.value === type)?.color ?? "slate").dot}`}
                   />
                 )}
               </div>
@@ -275,11 +272,11 @@ export function ContactForm({
             <select
               id="type"
               value={type}
-              onChange={(e) => setType(e.target.value as ContactTypeValue)}
+              onChange={(e) => setType(e.target.value)}
               disabled={Boolean(groupId)}
               className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500`}
             >
-              {CONTACT_TYPES.map((t) => (
+              {types.map((t) => (
                 <option key={t.value} value={t.value}>
                   {t.label}
                 </option>

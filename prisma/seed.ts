@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { randomBytes } from "node:crypto";
-import { PrismaClient, ContactType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hashPassword } from "../lib/passwords";
 
@@ -12,7 +12,7 @@ const prisma = new PrismaClient({ adapter });
 type SeedContact = {
   name: string;
   phone: string;
-  type: ContactType;
+  type: string;
   note: string;
   isPrimary?: boolean;
   sortOrder: number;
@@ -87,7 +87,25 @@ const seeds: SeedContact[] = [
   },
 ];
 
+const defaultTypes = [
+  { value: "EMERGENCY", label: "Emergency", color: "rose", icon: "siren", sortOrder: 0, isDefault: true },
+  { value: "POLICE", label: "Police", color: "blue", icon: "shield", sortOrder: 1, isDefault: true },
+  { value: "FIRE", label: "Fire", color: "orange", icon: "flame", sortOrder: 2, isDefault: true },
+  { value: "MEDICAL", label: "Medical", color: "emerald", icon: "cross", sortOrder: 3, isDefault: true },
+  { value: "FAMILY", label: "Family", color: "violet", icon: "users", sortOrder: 4, isDefault: true },
+  { value: "UTILITY", label: "Utility", color: "amber", icon: "zap", sortOrder: 5, isDefault: true },
+  { value: "OTHER", label: "Other", color: "slate", icon: "more", sortOrder: 6, isDefault: true },
+];
+
 async function main() {
+  for (const t of defaultTypes) {
+    await prisma.contactType.upsert({
+      where: { value: t.value },
+      update: {},
+      create: t,
+    });
+  }
+
   const adminSeeds = [
     { username: "admin1", password: randomBytes(12).toString("base64url") },
     { username: "admin2", password: randomBytes(12).toString("base64url") },

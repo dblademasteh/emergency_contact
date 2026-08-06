@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  CONTACT_TYPES,
-  type ContactTypeValue,
-} from "@/lib/contacts";
+import type { ContactType } from "@/lib/contact-types";
 import type { Group, GroupInput } from "@/lib/groups";
 import {
   ACCEPTED_LOGO_TYPES,
@@ -16,8 +13,9 @@ import { FolderIcon, XIcon } from "@/components/icons";
 type Props = {
   open: boolean;
   initial: Group | null;
+  types: ContactType[];
   defaultParentId: string | null;
-  defaultType: ContactTypeValue;
+  defaultType: string;
   parentOptions: { id: string; label: string }[];
   onClose: () => void;
   onSave: (
@@ -29,6 +27,7 @@ type Props = {
 export function GroupForm({
   open,
   initial,
+  types,
   defaultParentId,
   defaultType,
   parentOptions,
@@ -36,7 +35,7 @@ export function GroupForm({
   onSave,
 }: Props) {
   const [name, setName] = useState(initial?.name ?? "");
-  const [type, setType] = useState<ContactTypeValue>(
+  const [type, setType] = useState<string>(
     initial?.type ?? defaultType
   );
   const [parentId, setParentId] = useState<string>(
@@ -69,7 +68,7 @@ export function GroupForm({
       return;
     }
     if (file.size > MAX_LOGO_SOURCE_SIZE) {
-      setLogoError("Image must be 2 MB or smaller.");
+      setLogoError("Image must be 20 MB or smaller.");
       return;
     }
     try {
@@ -165,10 +164,10 @@ export function GroupForm({
             <select
               id="group-type"
               value={type}
-              onChange={(e) => setType(e.target.value as ContactTypeValue)}
+              onChange={(e) => setType(e.target.value)}
               className={inputClass}
             >
-              {CONTACT_TYPES.map((t) => (
+              {types.map((t) => (
                 <option key={t.value} value={t.value}>
                   {t.label}
                 </option>

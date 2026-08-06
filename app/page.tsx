@@ -1,33 +1,26 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  CONTACT_TYPES,
-  type Contact,
-  type ContactInput,
-  type ContactTypeValue,
-} from "@/lib/contacts";
+import type { Contact, ContactInput } from "@/lib/contacts";
 import type { Group, GroupInput } from "@/lib/groups";
 import { displayPath, groupPath } from "@/lib/groups";
+import {
+  type ContactType,
+  type ContactTypeInput,
+} from "@/lib/contact-types";
+import { categoryIcon } from "@/components/category-icons";
 import { ContactCard } from "@/components/contact-card";
 import { ContactForm } from "@/components/contact-form";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmergencyBanner } from "@/components/emergency-banner";
 import { GroupCard } from "@/components/group-card";
 import { GroupForm } from "@/components/group-form";
+import { HomeImage, type HomeContentLink } from "@/components/home-image";
 import { InstallButton } from "@/components/install-button";
 import { OfflineBanner } from "@/components/offline-banner";
-import {
-  Cross,
-  Flame,
-  Home,
-  MoreHorizontal,
-  Shield,
-  Siren,
-  Users,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
+import { TypeManager } from "@/components/type-manager";
+import { AdminBottomNav } from "@/components/admin-bottom-nav";
+import { Home } from "lucide-react";
 import {
   ChevronLeftIcon,
   FolderIcon,
@@ -36,17 +29,7 @@ import {
   SearchIcon,
 } from "@/components/icons";
 
-type Filter = ContactTypeValue | "ALL";
-
-const CATEGORY_ICONS: Record<ContactTypeValue, LucideIcon> = {
-  EMERGENCY: Siren,
-  POLICE: Shield,
-  FIRE: Flame,
-  MEDICAL: Cross,
-  FAMILY: Users,
-  UTILITY: Zap,
-  OTHER: MoreHorizontal,
-};
+type Filter = string | "ALL";
 
 function sortContacts(contacts: Contact[]) {
   return [...contacts].sort((a, b) => {
@@ -63,9 +46,22 @@ function sortGroups(groups: Group[]) {
   });
 }
 
+function sortTypes(types: ContactType[]) {
+  return [...types].sort((a, b) => {
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+    return a.label.localeCompare(b.label);
+  });
+}
+
 export default function Page() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
+  const [types, setTypes] = useState<ContactType[]>([]);
+  const [homeImage, setHomeImage] = useState<string | null>(null);
+  const [homeContentImage, setHomeContentImage] = useState<string | null>(null);
+  const [homeContentLinks, setHomeContentLinks] = useState<HomeContentLink[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -82,6 +78,10 @@ export default function Page() {
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [groupFormKey, setGroupFormKey] = useState(0);
 
+  const [typeFormOpen, setTypeFormOpen] = useState(false);
+  const [editingType, setEditingType] = useState<ContactType | null>(null);
+  const [typeFormKey, setTypeFormKey] = useState(0);
+
   const [dialog, setDialog] = useState<{
     title: string;
     message: string;
@@ -92,35 +92,78 @@ export default function Page() {
   const [confirmBusy, setConfirmBusy] = useState(false);
 
   const loadAll = useCallback(async () => {
-    const [contactsRes, groupsRes] = await Promise.all([
-      fetch("/api/contacts"),
-      fetch("/api/groups"),
-    ]);
+    const [contactsRes, groupsRes, typesRes, homeRes, contentRes, linksRes] =
+      await Promise.all([
+        fetch("/api/contacts"),
+        fetch("/api/groups"),
+        fetch("/api/types"),
+        fetch("/api/settings/home-image"),
+        fetch("/api/settings/home-content-image"),
+        fetch("/api/settings/home-content-links"),
+      ]);
     if (!contactsRes.ok) throw new Error(`Contacts request failed (${contactsRes.status})`);
     if (!groupsRes.ok) throw new Error(`Groups request failed (${groupsRes.status})`);
-    const [contactData, groupData] = await Promise.all([
-      contactsRes.json() as Promise<Contact[]>,
-      groupsRes.json() as Promise<Group[]>,
-    ]);
+    if (!typesRes.ok) throw new Error(`Types request failed (${typesRes.status})`);
+    const [contactData, groupData, typeData, homeData, contentData, linksData] =
+      await Promise.all([
+        contactsRes.json() as Promise<Contact[]>,
+        groupsRes.json() as Promise<Group[]>,
+        typesRes.json() as Promise<ContactType[]>,
+        homeRes.ok
+          ? (homeRes.json() as Promise<{ image?: string | null }>)
+          : Promise.resolve({ image: null }),
+        contentRes.ok
+          ? (contentRes.json() as Promise<{ image?: string | null }>)
+          : Promise.resolve({ image: null }),
+        linksRes.ok
+          ? (linksRes.json() as Promise<{ links?: HomeContentLink[] }>)
+          : Promise.resolve({ links: [] }),
+      ]);
     setContacts(sortContacts(contactData));
     setGroups(sortGroups(groupData));
+    setTypes(sortTypes(typeData));
+    setHomeImage(homeData?.image ?? null);
+    setHomeContentImage(contentData?.image ?? null);
+    setHomeContentLinks(linksData?.links ?? []);
   }, []);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([fetch("/api/contacts"), fetch("/api/groups")])
-      .then(([contactsRes, groupsRes]) => {
+    Promise.all([
+      fetch("/api/contacts"),
+      fetch("/api/groups"),
+      fetch("/api/types"),
+      fetch("/api/settings/home-image"),
+      fetch("/api/settings/home-content-image"),
+      fetch("/api/settings/home-content-links"),
+    ])
+      .then(([contactsRes, groupsRes, typesRes, homeRes, contentRes, linksRes]) => {
         if (!contactsRes.ok) throw new Error(`Contacts request failed (${contactsRes.status})`);
         if (!groupsRes.ok) throw new Error(`Groups request failed (${groupsRes.status})`);
+        if (!typesRes.ok) throw new Error(`Types request failed (${typesRes.status})`);
         return Promise.all([
           contactsRes.json() as Promise<Contact[]>,
           groupsRes.json() as Promise<Group[]>,
+          typesRes.json() as Promise<ContactType[]>,
+          homeRes.ok
+            ? (homeRes.json() as Promise<{ image?: string | null }>)
+            : Promise.resolve({ image: null }),
+          contentRes.ok
+            ? (contentRes.json() as Promise<{ image?: string | null }>)
+            : Promise.resolve({ image: null }),
+          linksRes.ok
+            ? (linksRes.json() as Promise<{ links?: HomeContentLink[] }>)
+            : Promise.resolve({ links: [] }),
         ]);
       })
-      .then(([contactData, groupData]) => {
+      .then(([contactData, groupData, typeData, homeData, contentData, linksData]) => {
         if (cancelled) return;
         setContacts(sortContacts(contactData));
         setGroups(sortGroups(groupData));
+        setTypes(sortTypes(typeData));
+        setHomeImage(homeData?.image ?? null);
+        setHomeContentImage(contentData?.image ?? null);
+        setHomeContentLinks(linksData?.links ?? []);
         setLoadError(null);
       })
       .catch(() => {
@@ -445,6 +488,85 @@ export default function Page() {
     [loadAll]
   );
 
+  const openAddType = () => {
+    setEditingType(null);
+    setTypeFormKey((k) => k + 1);
+    setTypeFormOpen(true);
+  };
+
+  const handleSaveType = useCallback(
+    async (
+      input: ContactTypeInput,
+      editingValue?: string
+    ): Promise<{ error?: string } | void> => {
+      try {
+        if (editingValue) {
+          const res = await fetch(
+            `/api/types/${encodeURIComponent(editingValue)}`,
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(input),
+            }
+          );
+          const data = await res.json();
+          if (!res.ok) return { error: data.error ?? "Failed to save." };
+        } else {
+          const res = await fetch("/api/types", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(input),
+          });
+          const data = await res.json();
+          if (!res.ok) return { error: data.error ?? "Failed to add category." };
+        }
+        await loadAll();
+      } catch {
+        return { error: "Network error. Check your connection and try again." };
+      }
+    },
+    [loadAll]
+  );
+
+  const handleDeleteType = useCallback(
+    (type: ContactType) => {
+      setDialog({
+        title: "Delete category",
+        message: `Delete the "${type.label}" category?\n\nContacts and groups using it will be moved to "Other".`,
+        confirmLabel: "Delete",
+        destructive: true,
+        onConfirm: async () => {
+          setConfirmBusy(true);
+          try {
+            const res = await fetch(
+              `/api/types/${encodeURIComponent(type.value)}`,
+              { method: "DELETE" }
+            );
+            if (!res.ok) {
+              const data = await res.json().catch(() => null);
+              setDialog({
+                title: "Couldn't delete category",
+                message:
+                  data?.error ?? "Failed to delete the category. Please try again.",
+              });
+              return;
+            }
+            await loadAll();
+            setDialog(null);
+          } catch {
+            setDialog({
+              title: "Network error",
+              message: "Network error. Check your connection and try again.",
+            });
+          } finally {
+            setConfirmBusy(false);
+          }
+        },
+      });
+    },
+    [loadAll]
+  );
+
   const chipClass = (active: boolean) =>
     `shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 focus-visible:ring-offset-1 ${
       active
@@ -453,9 +575,10 @@ export default function Page() {
     }`;
 
   const searching = query.trim().length > 0;
+  const isHome = path.length === 0 && filter === "ALL";
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-16 pt-6">
+    <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-32 pt-6">
       <header className="mb-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
@@ -475,37 +598,14 @@ export default function Page() {
         <div className="flex flex-wrap items-center justify-end gap-2">
           <InstallButton />
           {isAdmin && (
-            <>
-              <span className="hidden rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white sm:inline">
-                Admin
-              </span>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30"
-              >
-                Sign out
-              </button>
-              <button
-                type="button"
-                onClick={openAddGroup}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-900 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 focus-visible:ring-offset-1"
-              >
-                <FolderIcon className="h-4 w-4" />
-                Group
-              </button>
-              <button
-                type="button"
-                onClick={openAdd}
-                className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-1"
-              >
-                <PlusIcon className="h-4 w-4" />
-                Add
-              </button>
-            </>
+            <span className="hidden rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white sm:inline">
+              Admin
+            </span>
           )}
         </div>
       </header>
+
+      <HomeImage image={homeImage} isAdmin={isAdmin} onChanged={setHomeImage} />
 
       <OfflineBanner />
 
@@ -523,7 +623,7 @@ export default function Page() {
 
       <EmergencyBanner />
 
-      <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+      <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1">
         <button
           type="button"
           onClick={() => {
@@ -536,8 +636,8 @@ export default function Page() {
           <Home className="h-4 w-4" />
           Home
         </button>
-        {CONTACT_TYPES.map((t) => {
-          const Icon = CATEGORY_ICONS[t.value];
+        {types.map((t) => {
+          const Icon = categoryIcon(t.icon);
           return (
             <button
               key={t.value}
@@ -551,6 +651,19 @@ export default function Page() {
           );
         })}
       </div>
+
+      {isHome && (
+        <HomeImage
+          image={homeContentImage}
+          isAdmin={isAdmin}
+          onChanged={setHomeContentImage}
+          endpoint="/api/settings/home-content-image"
+          placeholder="Add a photo"
+          alt="Home content"
+          links={homeContentLinks}
+          onLinksChanged={setHomeContentLinks}
+        />
+      )}
 
       {!searching && path.length > 0 && (
         <div className="mb-6 flex flex-wrap items-center gap-2">
@@ -615,6 +728,7 @@ export default function Page() {
                 <li key={contact.id}>
                   <ContactCard
                     contact={contact}
+                    types={types}
                     canEdit={isAdmin}
                     onEdit={openEdit}
                     onDelete={handleDelete}
@@ -624,11 +738,9 @@ export default function Page() {
             </ul>
           )}
         </>
-      ) : path.length === 0 && filter === "ALL" ? (
-        <div aria-hidden="true" />
       ) : (
         <>
-          {childGroups.length > 0 && (
+          {childGroups.length > 0 && !isHome && (
             <section className="mb-8" aria-label="Groups">
               <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 {path.length === 0 ? "Top level" : "Sub-groups"}
@@ -639,6 +751,7 @@ export default function Page() {
                     <GroupCard
                       name={group.name}
                       type={group.type}
+                      types={types}
                       logoUrl={group.logoUrl}
                       contactCount={directCountByGroup.get(group.id) ?? 0}
                       childCount={childrenByParent.get(group.id)?.length ?? 0}
@@ -653,7 +766,7 @@ export default function Page() {
             </section>
           )}
 
-          {visibleContacts.length > 0 && (
+          {visibleContacts.length > 0 && !isHome && (
             <section aria-label="Contacts">
               {childGroups.length > 0 && (
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -665,6 +778,7 @@ export default function Page() {
                   <li key={contact.id}>
                     <ContactCard
                       contact={contact}
+                      types={types}
                       canEdit={isAdmin}
                       onEdit={openEdit}
                       onDelete={handleDelete}
@@ -675,7 +789,7 @@ export default function Page() {
             </section>
           )}
 
-          {childGroups.length === 0 && visibleContacts.length === 0 && (
+          {childGroups.length === 0 && visibleContacts.length === 0 && !isHome && (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-10 text-center">
               <p className="text-slate-500">
                 {path.length === 0
@@ -718,10 +832,20 @@ export default function Page() {
         )}
       </p>
 
+      {isAdmin && (
+        <AdminBottomNav
+          onAddContact={openAdd}
+          onAddGroup={openAddGroup}
+          onManageTypes={openAddType}
+          onSignOut={handleLogout}
+        />
+      )}
+
       <ContactForm
         key={`contact-${formKey}`}
         open={formOpen}
         initial={editing}
+        types={types}
         groups={contactGroupOptions}
         defaultGroupId={currentGroupId}
         defaultType={filter === "ALL" ? undefined : filter}
@@ -733,11 +857,21 @@ export default function Page() {
         key={`group-${groupFormKey}`}
         open={groupFormOpen}
         initial={editingGroup}
+        types={types}
         defaultParentId={currentGroupId}
         defaultType={filter === "ALL" ? "OTHER" : filter}
         parentOptions={groupOptions}
         onClose={() => setGroupFormOpen(false)}
         onSave={handleSaveGroup}
+      />
+
+      <TypeManager
+        key={`type-${typeFormKey}`}
+        open={typeFormOpen}
+        types={types}
+        onClose={() => setTypeFormOpen(false)}
+        onSave={handleSaveType}
+        onDelete={handleDeleteType}
       />
 
       <ConfirmDialog

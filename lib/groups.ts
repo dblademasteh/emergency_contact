@@ -1,9 +1,7 @@
-import { CONTACT_TYPES, type ContactTypeValue } from "@/lib/contacts";
-
 export type Group = {
   id: string;
   name: string;
-  type: ContactTypeValue;
+  type: string;
   parentId: string | null;
   logoUrl: string | null;
   sortOrder: number;
@@ -13,7 +11,7 @@ export type Group = {
 
 export type GroupInput = {
   name: string;
-  type: ContactTypeValue;
+  type: string;
   parentId: string | null;
   sortOrder?: number;
 };
@@ -27,15 +25,14 @@ export function parseGroupInput(body: unknown):
 
   const raw = body as Record<string, unknown>;
   const name = typeof raw.name === "string" ? raw.name.trim() : "";
-  const type = raw.type as ContactTypeValue;
+  const type = typeof raw.type === "string" ? raw.type.trim() : "";
   const parentId =
     typeof raw.parentId === "string" && raw.parentId ? raw.parentId : null;
 
   if (!name) return { error: "Name is required." };
   if (name.length > 100) return { error: "Name must be 100 characters or fewer." };
-  if (!CONTACT_TYPES.some((t) => t.value === type)) {
-    return { error: "Unknown contact type." };
-  }
+  if (!type) return { error: "Category is required." };
+  if (type.length > 50) return { error: "Category is invalid." };
 
   return { data: { name, type, parentId } };
 }

@@ -4,7 +4,7 @@ import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-const MAX_LOGO_LENGTH = 3_000_000;
+const MAX_LOGO_LENGTH = 20_000_000;
 const LOGO_PATTERN = /^data:image\/(png|jpeg|webp|gif);base64,/;
 
 export async function POST(request: NextRequest, ctx: Ctx) {
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   }
   if (logo.length > MAX_LOGO_LENGTH) {
     return NextResponse.json(
-      { error: "Logo is too large (max 2 MB)." },
+      { error: "Logo is too large (max 20 MB)." },
       { status: 400 }
     );
   }
