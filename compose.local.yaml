@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: emergency-contacts-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: emergency
+      POSTGRES_PASSWORD: emergency
+      POSTGRES_DB: emergency_contacts
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U emergency -d emergency_contacts"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

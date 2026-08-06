@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ContactType {
+  EMERGENCY
+  POLICE
+  FIRE
+  MEDICAL
+  FAMILY
+  UTILITY
+  OTHER
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Group {
+  id        String      @id @default(cuid())
+  name      String
+  type      ContactType @default(OTHER)
+  logoUrl   String?
+  parentId  String?
+  sortOrder Int         @default(0)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  parent   Group?    @relation("GroupTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Group[]   @relation("GroupTree")
+  contacts Contact[]
+
+  @@index([parentId, sortOrder])
+  @@index([type])
+  @@map("groups")
+}
+
+model Contact {
+  id          String      @id @default(cuid())
+  name        String
+  phone       String
+  type        ContactType @default(OTHER)
+  note        String?
+  logoUrl     String?
+  latitude    Float?
+  longitude   Float?
+  facebookUrl String?
+  isPrimary   Boolean     @default(false)
+  sortOrder   Int         @default(0)
+  groupId     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  group Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([type, sortOrder])
+  @@index([groupId])
+  @@map("contacts")
+}

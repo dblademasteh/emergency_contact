@@ -1,0 +1,37 @@
+name: emergency-contacts-prod
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: emergency-contacts-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-emergency}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-emergency_contacts}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-emergency} -d ${POSTGRES_DB:-emergency_contacts}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: emergency-contacts
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-emergency}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-emergency_contacts}
+      SESSION_SECRET: ${SESSION_SECRET}
+      NODE_ENV: production
+    ports:
+      - "80:3000"
+
+volumes:
+  pgdata:

@@ -1,0 +1,11 @@
+# Normalize line endings to LF for all text files.
+# Prevents CRLF/LF churn between Windows (dev) and Linux (NAS build).
+* text=auto eol=lf
+
+# Binary files should never be touched.
+*.png binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
