@@ -415,7 +415,7 @@ export function ContactForm({
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-60"
+              className="flex-1 rounded-xl bg-linear-to-r from-rose-600 to-red-600 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-rose-600/25 transition hover:brightness-110 disabled:opacity-60"
             >
               {submitting ? "Saving…" : initial ? "Save changes" : "Add contact"}
             </button>

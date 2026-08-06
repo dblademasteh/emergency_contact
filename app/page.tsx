@@ -5,6 +5,7 @@ import type { Contact, ContactInput } from "@/lib/contacts";
 import type { Group, GroupInput } from "@/lib/groups";
 import { displayPath, groupPath } from "@/lib/groups";
 import {
+  categoryStyle,
   type ContactType,
   type ContactTypeInput,
 } from "@/lib/contact-types";
@@ -567,11 +568,12 @@ export default function Page() {
     [loadAll]
   );
 
-  const chipClass = (active: boolean) =>
-    `shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 focus-visible:ring-offset-1 ${
+  const chipClass = (active: boolean, activeCls?: string) =>
+    `shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 focus-visible:ring-offset-1 ${
       active
-        ? "border-slate-900 bg-slate-900 text-white shadow-sm"
-        : "border-slate-300 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-900"
+        ? activeCls ??
+          "border-slate-900 bg-slate-900 text-white shadow-md shadow-slate-900/20"
+        : "border-slate-300 bg-white text-slate-600 shadow-sm hover:border-slate-400 hover:text-slate-900"
     }`;
 
   const searching = query.trim().length > 0;
@@ -581,11 +583,15 @@ export default function Page() {
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-32 pt-6">
       <header className="mb-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
-            <PhoneIcon className="h-5 w-5" />
+          <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-rose-500 via-red-600 to-red-800 text-white shadow-lg shadow-red-600/30">
+            <PhoneIcon className="h-6 w-6" />
+            <span
+              aria-hidden="true"
+              className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-amber-400 ring-2 ring-white"
+            />
           </div>
           <div>
-            <h1 className="text-lg font-bold leading-tight text-slate-900">
+            <h1 className="text-lg font-extrabold leading-tight tracking-tight text-slate-900">
               Emergency Contacts
             </h1>
             <p className="text-sm text-slate-500">
@@ -617,7 +623,7 @@ export default function Page() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search all contacts…"
           aria-label="Search contacts"
-          className="w-full rounded-2xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+          className="w-full rounded-2xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15"
         />
       </div>
 
@@ -638,12 +644,13 @@ export default function Page() {
         </button>
         {types.map((t) => {
           const Icon = categoryIcon(t.icon);
+          const activeCls = categoryStyle(t.color).active;
           return (
             <button
               key={t.value}
               type="button"
               onClick={() => setFilter(filter === t.value ? "ALL" : t.value)}
-              className={chipClass(filter === t.value)}
+              className={chipClass(filter === t.value, activeCls)}
             >
               <Icon className="h-4 w-4" />
               {t.label}
@@ -719,7 +726,7 @@ export default function Page() {
       ) : searching ? (
         <>
           {visibleContacts.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-10 text-center">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center">
               <p className="text-slate-500">No contacts match your search.</p>
             </div>
           ) : (
@@ -742,7 +749,11 @@ export default function Page() {
         <>
           {childGroups.length > 0 && !isHome && (
             <section className="mb-8" aria-label="Groups">
-              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full bg-linear-to-br from-rose-500 to-red-600"
+                />
                 {path.length === 0 ? "Top level" : "Sub-groups"}
               </h2>
               <ul className="space-y-3">
@@ -769,7 +780,11 @@ export default function Page() {
           {visibleContacts.length > 0 && !isHome && (
             <section aria-label="Contacts">
               {childGroups.length > 0 && (
-                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+                  <span
+                    aria-hidden="true"
+                    className="h-2 w-2 rounded-full bg-linear-to-br from-sky-500 to-blue-600"
+                  />
                   Contacts
                 </h2>
               )}
@@ -790,7 +805,7 @@ export default function Page() {
           )}
 
           {childGroups.length === 0 && visibleContacts.length === 0 && !isHome && (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-10 text-center">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center">
               <p className="text-slate-500">
                 {path.length === 0
                   ? "No groups or contacts yet."
@@ -801,7 +816,7 @@ export default function Page() {
                   <button
                     type="button"
                     onClick={openAddGroup}
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-900 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
                   >
                     <FolderIcon className="h-4 w-4" />
                     Add a group
@@ -809,7 +824,7 @@ export default function Page() {
                   <button
                     type="button"
                     onClick={openAdd}
-                    className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                    className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-rose-600 to-red-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-rose-600/25 transition hover:brightness-110"
                   >
                     <PlusIcon className="h-4 w-4" />
                     Add a contact

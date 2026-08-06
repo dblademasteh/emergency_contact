@@ -101,10 +101,10 @@ export function ConfirmDialog({
               type="button"
               onClick={onConfirm}
               disabled={busy}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:opacity-60 ${
+              className={`rounded-xl px-4 py-2 text-sm font-bold text-white shadow-md transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:opacity-60 ${
                 destructive
                   ? "bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-500"
-                  : "bg-slate-900 hover:bg-slate-800 focus-visible:ring-slate-900"
+                  : "bg-linear-to-r from-rose-600 to-red-600 shadow-rose-600/25 hover:brightness-110 focus-visible:ring-rose-500"
               }`}
             >
               {busy ? "Deleting…" : confirmLabel}

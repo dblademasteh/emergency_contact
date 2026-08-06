@@ -15,8 +15,8 @@ type Props = {
 };
 
 const baseButton =
-  "flex flex-1 flex-col items-center justify-center gap-1 rounded-xl py-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30";
-const label = "text-[11px] font-semibold";
+  "flex flex-1 flex-col items-center justify-center gap-1 rounded-xl py-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30";
+const label = "text-[11px] font-bold";
 
 export function AdminBottomNav({
   onAddContact,
@@ -38,7 +38,7 @@ export function AdminBottomNav({
           onClick={onAddContact}
           className={`${baseButton} text-rose-600 hover:bg-rose-50 hover:text-rose-700`}
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-600 text-white shadow-sm">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-rose-500 to-red-600 text-white shadow-lg shadow-rose-600/30">
             <PlusIcon className="h-4.5 w-4.5" />
           </span>
           <span className={label}>Contact</span>

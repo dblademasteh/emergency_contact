@@ -1,7 +1,8 @@
 "use client";
 
 import { categoryStyle, type ContactType } from "@/lib/contact-types";
-import { FolderIcon, ChevronRightIcon, EditIcon, TrashIcon } from "@/components/icons";
+import { categoryIcon } from "@/components/category-icons";
+import { ChevronRightIcon, EditIcon, TrashIcon } from "@/components/icons";
 
 type Props = {
   name: string;
@@ -31,6 +32,7 @@ export function GroupCard({
   const typeInfo = types.find((t) => t.value === type);
   const styles = categoryStyle(typeInfo?.color ?? "slate");
   const label = typeInfo?.label ?? "Other";
+  const Icon = categoryIcon(typeInfo?.icon ?? "more");
   const subCount =
     childCount > 0 && contactCount > 0
       ? `${childCount} sub ${childCount === 1 ? "group" : "groups"} · ${contactCount} ${contactCount === 1 ? "contact" : "contacts"}`
@@ -39,11 +41,11 @@ export function GroupCard({
         : `${contactCount} ${contactCount === 1 ? "contact" : "contacts"}`;
 
   return (
-    <article className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow">
+    <article className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg">
       <button
         type="button"
         onClick={onOpen}
-        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 text-slate-500 ring-1 ring-slate-200 transition group-hover:bg-slate-100 group-hover:text-slate-700"
+        className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-white shadow-md transition ${styles.tile}`}
         aria-label={`Open ${name}`}
       >
         {logoUrl ? (
@@ -54,7 +56,7 @@ export function GroupCard({
             loading="lazy"
           />
         ) : (
-          <FolderIcon className="h-5 w-5" />
+          <Icon className="h-5 w-5" />
         )}
       </button>
 
@@ -63,14 +65,14 @@ export function GroupCard({
         onClick={onOpen}
         className="min-w-0 flex-1 text-left"
       >
-        <h3 className="truncate font-semibold text-slate-900">{name}</h3>
+        <h3 className="truncate font-bold text-slate-900">{name}</h3>
         <div className="mt-0.5 flex items-center gap-2">
           <span
-            className={`rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ${styles.badge}`}
+            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ${styles.badge}`}
           >
             {label}
           </span>
-          <span className="text-sm text-slate-500">{subCount}</span>
+          <span className="text-sm font-medium text-slate-500">{subCount}</span>
         </div>
       </button>
 

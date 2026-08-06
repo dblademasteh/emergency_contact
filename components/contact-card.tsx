@@ -2,6 +2,7 @@
 
 import type { Contact } from "@/lib/contacts";
 import { categoryStyle, type ContactType } from "@/lib/contact-types";
+import { categoryIcon } from "@/components/category-icons";
 import {
   EditIcon,
   FacebookIcon,
@@ -29,10 +30,13 @@ export function ContactCard({
   const styles = categoryStyle(typeInfo?.color ?? "slate");
   const label = typeInfo?.label ?? "Other";
   const href = `tel:${contact.phone.replace(/\s+/g, "")}`;
+  const Icon = categoryIcon(typeInfo?.icon ?? "more");
 
   return (
-    <article className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 ring-1 ring-slate-200">
+    <article className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg">
+      <div
+        className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-white shadow-md ${styles.tile}`}
+      >
         {contact.logoUrl ? (
           <img
             src={contact.logoUrl}
@@ -41,28 +45,25 @@ export function ContactCard({
             loading="lazy"
           />
         ) : (
-          <span
-            aria-hidden="true"
-            className={`h-3 w-3 rounded-full ${styles.dot}`}
-          />
+          <Icon className="h-5 w-5" />
         )}
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="truncate font-semibold text-slate-900">{contact.name}</h3>
+          <h3 className="truncate font-bold text-slate-900">{contact.name}</h3>
           {contact.isPrimary && (
-            <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-medium text-white">
+            <span className="rounded-full bg-linear-to-r from-rose-600 to-red-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
               Primary
             </span>
           )}
           <span
-            className={`rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ${styles.badge}`}
+            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ${styles.badge}`}
           >
             {label}
           </span>
         </div>
-        <p className="mt-0.5 truncate text-sm text-slate-600">{contact.phone}</p>
+        <p className="mt-0.5 truncate text-sm font-medium text-slate-700">{contact.phone}</p>
         {contact.note && (
           <p className="mt-0.5 line-clamp-2 text-sm text-slate-500">{contact.note}</p>
         )}
@@ -72,7 +73,7 @@ export function ContactCard({
         <a
           href={href}
           aria-label={`Call ${contact.name}`}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-600 text-white shadow-sm transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-rose-500 to-red-600 text-white shadow-lg shadow-rose-600/30 transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
         >
           <PhoneIcon className="h-5 w-5" />
         </a>

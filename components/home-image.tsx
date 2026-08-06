@@ -160,7 +160,7 @@ export function HomeImage({
             <a
               key={i}
               href={l.href}
-              className="truncate rounded-xl bg-slate-900 px-3 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-slate-700"
+              className="truncate rounded-xl bg-linear-to-r from-rose-600 to-red-600 px-3 py-2.5 text-center text-sm font-bold text-white shadow-md shadow-rose-600/20 transition hover:brightness-110"
             >
               {l.label}
             </a>
@@ -209,7 +209,7 @@ export function HomeImage({
               type="button"
               onClick={saveLinks}
               disabled={linksBusy}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+              className="rounded-full bg-linear-to-r from-rose-600 to-red-600 px-4 py-2 text-sm font-bold text-white shadow-md shadow-rose-600/25 transition hover:brightness-110 disabled:opacity-60"
             >
               {linksBusy ? "Saving…" : "Save links"}
             </button>
