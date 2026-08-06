@@ -875,41 +875,34 @@ export default function Page() {
       )}
 
       <footer className="mt-10">
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="relative overflow-hidden rounded-[1.75rem] bg-linear-to-br from-rose-600 via-red-600 to-red-800 p-5 text-white shadow-xl shadow-red-900/30">
+          {/* Beacon rings */}
           <span
             aria-hidden="true"
-            className="hazard-stripes pointer-events-none absolute inset-x-0 top-0 h-1.5 opacity-60"
+            className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10"
           />
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-rose-500 via-red-600 to-red-800 text-white shadow-lg shadow-red-600/30">
-                {appLogo ? (
-                  <img
-                    src={appLogo}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <PhoneIcon className="h-5 w-5" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
-                  Emergency Contacts
-                </p>
-                <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                  <span className="relative flex h-2 w-2 shrink-0">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                  </span>
-                  {saving ? "Saving…" : "Works offline · tap a number to call"}
-                </p>
-              </div>
-            </div>
+          <span
+            aria-hidden="true"
+            className="animate-beacon pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/20"
+          />
+          {/* Hazard stripe bottom edge */}
+          <span
+            aria-hidden="true"
+            className="hazard-stripes pointer-events-none absolute inset-x-0 bottom-0 h-2.5"
+          />
+
+          <div className="relative flex items-center justify-between gap-4">
+            <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-red-100">
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white" />
+              </span>
+              {saving ? "Saving…" : "Works offline · tap a number to call"}
+            </p>
             {!isEditor && (
               <a
                 href="/login"
-                className="shrink-0 text-sm font-semibold text-rose-600 transition hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+                className="shrink-0 rounded-full bg-white px-4 py-2 text-sm font-bold text-rose-700 shadow-md transition hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-rose-600"
               >
                 Sign in
               </a>
