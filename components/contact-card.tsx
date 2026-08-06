@@ -33,7 +33,7 @@ export function ContactCard({
   const Icon = categoryIcon(typeInfo?.icon ?? "more");
 
   return (
-    <article className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg">
+    <article className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
       <div
         className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-white shadow-md ${styles.tile}`}
       >
@@ -51,7 +51,7 @@ export function ContactCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="truncate font-bold text-slate-900">{contact.name}</h3>
+          <h3 className="truncate font-bold text-slate-900 dark:text-slate-100">{contact.name}</h3>
           {contact.isPrimary && (
             <span className="rounded-full bg-linear-to-r from-rose-600 to-red-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
               Primary
@@ -63,9 +63,9 @@ export function ContactCard({
             {label}
           </span>
         </div>
-        <p className="mt-0.5 truncate text-sm font-medium text-slate-700">{contact.phone}</p>
+        <p className="mt-0.5 truncate text-sm font-medium text-slate-700 dark:text-slate-300">{contact.phone}</p>
         {contact.note && (
-          <p className="mt-0.5 line-clamp-2 text-sm text-slate-500">{contact.note}</p>
+          <p className="mt-0.5 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">{contact.note}</p>
         )}
       </div>
 
@@ -105,7 +105,7 @@ export function ContactCard({
               type="button"
               onClick={() => onEdit(contact)}
               aria-label={`Edit ${contact.name}`}
-              className="flex h-11 w-11 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             >
               <EditIcon className="h-5 w-5" />
             </button>
@@ -113,7 +113,7 @@ export function ContactCard({
               type="button"
               onClick={() => onDelete(contact)}
               aria-label={`Delete ${contact.name}`}
-              className="flex h-11 w-11 items-center justify-center rounded-full text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40 dark:text-slate-400 dark:hover:bg-rose-500/15 dark:hover:text-rose-400"
             >
               <TrashIcon className="h-5 w-5" />
             </button>

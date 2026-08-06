@@ -98,7 +98,7 @@ export function TypeManager({
   }
 
   const inputClass =
-    "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10";
+    "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500";
 
   return (
     <div
@@ -111,7 +111,7 @@ export function TypeManager({
         role="dialog"
         aria-modal="true"
         aria-label="Manage categories"
-        className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:max-w-lg sm:rounded-3xl"
+        className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:max-w-lg sm:rounded-3xl dark:bg-slate-900"
       >
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -119,10 +119,10 @@ export function TypeManager({
               <PillIcon className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Categories
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 {editingValue ? "Edit a category" : "Add a new category"}
               </p>
             </div>
@@ -131,7 +131,7 @@ export function TypeManager({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <XIcon className="h-5 w-5" />
           </button>
@@ -141,7 +141,7 @@ export function TypeManager({
           <div>
             <label
               htmlFor="type-label"
-              className="mb-1.5 block text-sm font-medium text-slate-700"
+              className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               Label
             </label>
@@ -158,7 +158,7 @@ export function TypeManager({
           </div>
 
           <div>
-            <span className="mb-1.5 block text-sm font-medium text-slate-700">
+            <span className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Color
             </span>
             <div className="flex flex-wrap items-center gap-2">
@@ -170,7 +170,7 @@ export function TypeManager({
                   aria-label={`Use ${c} color`}
                   className={`flex h-8 w-8 items-center justify-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/40 ${
                     color === c
-                      ? "ring-2 ring-slate-900 ring-offset-2"
+                      ? "ring-2 ring-slate-900 ring-offset-2 dark:ring-slate-300 dark:ring-offset-slate-900"
                       : "hover:scale-110"
                   }`}
                 >
@@ -183,7 +183,7 @@ export function TypeManager({
           </div>
 
           <div>
-            <span className="mb-1.5 block text-sm font-medium text-slate-700">
+            <span className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Icon
             </span>
             <div className="flex flex-wrap items-center gap-2">
@@ -198,7 +198,7 @@ export function TypeManager({
                     className={`flex h-10 w-10 items-center justify-center rounded-xl border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/40 ${
                       icon === key
                         ? "border-slate-900 bg-slate-900 text-white"
-                        : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                        : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
                     }`}
                   >
                     <Icon className="h-5 w-5" />
@@ -211,7 +211,7 @@ export function TypeManager({
           <div>
             <label
               htmlFor="type-sort"
-              className="mb-1.5 block text-sm font-medium text-slate-700"
+              className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               Order
             </label>
@@ -224,13 +224,13 @@ export function TypeManager({
               placeholder="0"
               className={inputClass}
             />
-            <p className="mt-1.5 text-xs text-slate-400">
+            <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
               Lower numbers appear first in the filter row.
             </p>
           </div>
 
           {error && (
-            <p className="rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-700">
+            <p className="rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">
               {error}
             </p>
           )}
@@ -239,7 +239,7 @@ export function TypeManager({
             <button
               type="button"
               onClick={startAdd}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               New
             </button>
@@ -257,15 +257,15 @@ export function TypeManager({
           </div>
         </form>
 
-        <div className="mt-6 border-t border-slate-100 pt-5">
+        <div className="mt-6 border-t border-slate-100 pt-5 dark:border-slate-800">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-slate-700">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               Existing categories
             </h3>
             <button
               type="button"
               onClick={startAdd}
-              className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+              className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
             >
               <PlusIcon className="h-3.5 w-3.5" />
               New
@@ -279,7 +279,7 @@ export function TypeManager({
                 return (
                   <li
                     key={t.value}
-                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5"
+                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 dark:border-slate-800 dark:bg-slate-800/60"
                   >
                     <span
                       className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-600 ring-1 ring-slate-200 ${CATEGORY_STYLES[t.color as keyof typeof CATEGORY_STYLES]?.badge ?? ""}`}
@@ -287,10 +287,10 @@ export function TypeManager({
                       <Icon className="h-4.5 w-4.5" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-900">
+                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {t.label}
                       </p>
-                      <p className="truncate text-xs text-slate-500">
+                      <p className="truncate text-xs text-slate-500 dark:text-slate-400">
                         {t.value}
                         {t.isDefault ? " · default" : ""}
                       </p>
@@ -299,7 +299,7 @@ export function TypeManager({
                       type="button"
                       onClick={() => startEdit(t)}
                       aria-label={`Edit ${t.label}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                     >
                       <EditIcon className="h-4.5 w-4.5" />
                     </button>
@@ -307,7 +307,7 @@ export function TypeManager({
                       type="button"
                       onClick={() => onDelete(t)}
                       aria-label={`Delete ${t.label}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-rose-500/15 dark:hover:text-rose-400"
                     >
                       <TrashIcon className="h-4.5 w-4.5" />
                     </button>

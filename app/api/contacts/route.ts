@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseContactInput } from "@/lib/contacts";
-import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -37,9 +37,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value)) {
+  if (!isEditorToken(request.cookies.get(SESSION_COOKIE)?.value)) {
     return NextResponse.json(
-      { error: "Unauthorized. Admin access required." },
+      { error: "Sign in required." },
       { status: 401 }
     );
   }

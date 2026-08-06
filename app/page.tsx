@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Contact, ContactInput } from "@/lib/contacts";
 import type { Group, GroupInput } from "@/lib/groups";
 import { displayPath, groupPath } from "@/lib/groups";
@@ -18,9 +19,12 @@ import { GroupCard } from "@/components/group-card";
 import { GroupForm } from "@/components/group-form";
 import { HomeImage, type HomeContentLink } from "@/components/home-image";
 import { InstallButton } from "@/components/install-button";
+import { LogoManager } from "@/components/logo-manager";
 import { OfflineBanner } from "@/components/offline-banner";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { TypeManager } from "@/components/type-manager";
 import { AdminBottomNav } from "@/components/admin-bottom-nav";
+import { HelpWidget } from "@/components/help-widget";
 import { Home } from "lucide-react";
 import {
   ChevronLeftIcon,
@@ -55,6 +59,7 @@ function sortTypes(types: ContactType[]) {
 }
 
 export default function Page() {
+  const router = useRouter();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [types, setTypes] = useState<ContactType[]>([]);
@@ -63,9 +68,12 @@ export default function Page() {
   const [homeContentLinks, setHomeContentLinks] = useState<HomeContentLink[]>(
     []
   );
+  const [appLogo, setAppLogo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<"admin" | "user" | null>(null);
+  const isAdmin = role === "admin";
+  const isEditor = role !== null;
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("ALL");
   const [currentGroupId, setCurrentGroupId] = useState<string | null>(null);
@@ -93,7 +101,7 @@ export default function Page() {
   const [confirmBusy, setConfirmBusy] = useState(false);
 
   const loadAll = useCallback(async () => {
-    const [contactsRes, groupsRes, typesRes, homeRes, contentRes, linksRes] =
+    const [contactsRes, groupsRes, typesRes, homeRes, contentRes, linksRes, logoRes] =
       await Promise.all([
         fetch("/api/contacts"),
         fetch("/api/groups"),
@@ -101,11 +109,12 @@ export default function Page() {
         fetch("/api/settings/home-image"),
         fetch("/api/settings/home-content-image"),
         fetch("/api/settings/home-content-links"),
+        fetch("/api/settings/app-logo"),
       ]);
     if (!contactsRes.ok) throw new Error(`Contacts request failed (${contactsRes.status})`);
     if (!groupsRes.ok) throw new Error(`Groups request failed (${groupsRes.status})`);
     if (!typesRes.ok) throw new Error(`Types request failed (${typesRes.status})`);
-    const [contactData, groupData, typeData, homeData, contentData, linksData] =
+    const [contactData, groupData, typeData, homeData, contentData, linksData, logoData] =
       await Promise.all([
         contactsRes.json() as Promise<Contact[]>,
         groupsRes.json() as Promise<Group[]>,
@@ -119,6 +128,9 @@ export default function Page() {
         linksRes.ok
           ? (linksRes.json() as Promise<{ links?: HomeContentLink[] }>)
           : Promise.resolve({ links: [] }),
+        logoRes.ok
+          ? (logoRes.json() as Promise<{ logo?: string | null }>)
+          : Promise.resolve({ logo: null }),
       ]);
     setContacts(sortContacts(contactData));
     setGroups(sortGroups(groupData));
@@ -126,6 +138,7 @@ export default function Page() {
     setHomeImage(homeData?.image ?? null);
     setHomeContentImage(contentData?.image ?? null);
     setHomeContentLinks(linksData?.links ?? []);
+    setAppLogo(logoData?.logo ?? null);
   }, []);
 
   useEffect(() => {
@@ -137,8 +150,9 @@ export default function Page() {
       fetch("/api/settings/home-image"),
       fetch("/api/settings/home-content-image"),
       fetch("/api/settings/home-content-links"),
+      fetch("/api/settings/app-logo"),
     ])
-      .then(([contactsRes, groupsRes, typesRes, homeRes, contentRes, linksRes]) => {
+      .then(([contactsRes, groupsRes, typesRes, homeRes, contentRes, linksRes, logoRes]) => {
         if (!contactsRes.ok) throw new Error(`Contacts request failed (${contactsRes.status})`);
         if (!groupsRes.ok) throw new Error(`Groups request failed (${groupsRes.status})`);
         if (!typesRes.ok) throw new Error(`Types request failed (${typesRes.status})`);
@@ -155,9 +169,12 @@ export default function Page() {
           linksRes.ok
             ? (linksRes.json() as Promise<{ links?: HomeContentLink[] }>)
             : Promise.resolve({ links: [] }),
+          logoRes.ok
+            ? (logoRes.json() as Promise<{ logo?: string | null }>)
+            : Promise.resolve({ logo: null }),
         ]);
       })
-      .then(([contactData, groupData, typeData, homeData, contentData, linksData]) => {
+      .then(([contactData, groupData, typeData, homeData, contentData, linksData, logoData]) => {
         if (cancelled) return;
         setContacts(sortContacts(contactData));
         setGroups(sortGroups(groupData));
@@ -165,6 +182,7 @@ export default function Page() {
         setHomeImage(homeData?.image ?? null);
         setHomeContentImage(contentData?.image ?? null);
         setHomeContentLinks(linksData?.links ?? []);
+        setAppLogo(logoData?.logo ?? null);
         setLoadError(null);
       })
       .catch(() => {
@@ -182,11 +200,11 @@ export default function Page() {
     let cancelled = false;
     fetch("/api/auth/me")
       .then((res) => (res.ok ? res.json() : null))
-      .then((data: { isAdmin?: boolean } | null) => {
-        if (!cancelled) setIsAdmin(data?.isAdmin ?? false);
+      .then((data: { role?: "admin" | "user" | null } | null) => {
+        if (!cancelled) setRole(data?.role ?? null);
       })
       .catch(() => {
-        if (!cancelled) setIsAdmin(false);
+        if (!cancelled) setRole(null);
       });
     return () => {
       cancelled = true;
@@ -197,7 +215,7 @@ export default function Page() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
-      setIsAdmin(false);
+      setRole(null);
     }
   }, []);
 
@@ -247,12 +265,12 @@ export default function Page() {
 
   const groupOptions = useMemo(() => {
     const excluded =
-      editingGroup && isAdmin ? subtreeIds(editingGroup.id) : new Set<string>();
+      editingGroup && isEditor ? subtreeIds(editingGroup.id) : new Set<string>();
     return groups
       .filter((g) => !excluded.has(g.id))
       .map((g) => ({ id: g.id, label: displayPath(g.id, groups) }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [groups, editingGroup, isAdmin, subtreeIds]);
+  }, [groups, editingGroup, isEditor, subtreeIds]);
 
   const contactGroupOptions = useMemo(
     () =>
@@ -573,7 +591,7 @@ export default function Page() {
       active
         ? activeCls ??
           "border-slate-900 bg-slate-900 text-white shadow-md shadow-slate-900/20"
-        : "border-slate-300 bg-white text-slate-600 shadow-sm hover:border-slate-400 hover:text-slate-900"
+        : "border-slate-300 bg-white text-slate-600 shadow-sm hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100"
     }`;
 
   const searching = query.trim().length > 0;
@@ -583,18 +601,26 @@ export default function Page() {
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-32 pt-6">
       <header className="mb-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-rose-500 via-red-600 to-red-800 text-white shadow-lg shadow-red-600/30">
-            <PhoneIcon className="h-6 w-6" />
+          <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-linear-to-br from-rose-500 via-red-600 to-red-800 text-white shadow-lg shadow-red-600/30">
+            {appLogo ? (
+              <img
+                src={appLogo}
+                alt="App logo"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <PhoneIcon className="h-6 w-6" />
+            )}
             <span
               aria-hidden="true"
               className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-amber-400 ring-2 ring-white"
             />
           </div>
           <div>
-            <h1 className="text-lg font-extrabold leading-tight tracking-tight text-slate-900">
+            <h1 className="text-lg font-extrabold leading-tight tracking-tight text-slate-900 dark:text-slate-100">
               Emergency Contacts
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               {primaryCount > 0
                 ? `${primaryCount} pinned · ${contacts.length} total`
                 : `${contacts.length} contacts saved`}
@@ -602,6 +628,7 @@ export default function Page() {
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
+          <ThemeToggle />
           <InstallButton />
           {isAdmin && (
             <span className="hidden rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white sm:inline">
@@ -610,6 +637,8 @@ export default function Page() {
           )}
         </div>
       </header>
+
+      <LogoManager logo={appLogo} isAdmin={isAdmin} onChanged={setAppLogo} />
 
       <HomeImage image={homeImage} isAdmin={isAdmin} onChanged={setHomeImage} />
 
@@ -623,7 +652,7 @@ export default function Page() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search all contacts…"
           aria-label="Search contacts"
-          className="w-full rounded-2xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15"
+          className="w-full rounded-2xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-rose-500 dark:focus:ring-rose-500/20"
         />
       </div>
 
@@ -680,7 +709,7 @@ export default function Page() {
               setQuery("");
               setCurrentGroupId(path.length > 1 ? path[path.length - 2].id : null);
             }}
-            className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+            className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             <ChevronLeftIcon className="h-4 w-4" />
             Back
@@ -700,9 +729,9 @@ export default function Page() {
                 key={group.id}
                 type="button"
                 onClick={() => openGroup(group.id)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
               >
-                <FolderIcon className="h-4 w-4 text-slate-400" />
+                <FolderIcon className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                 {group.name}
               </button>
             );
@@ -715,19 +744,19 @@ export default function Page() {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-20 animate-pulse rounded-2xl border border-slate-200 bg-white"
+              className="h-20 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
             />
           ))}
         </div>
       ) : loadError ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-sm text-amber-800">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
           {loadError} Pull to refresh, or reload the page.
         </div>
       ) : searching ? (
         <>
           {visibleContacts.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center">
-              <p className="text-slate-500">No contacts match your search.</p>
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
+              <p className="text-slate-500 dark:text-slate-400">No contacts match your search.</p>
             </div>
           ) : (
             <ul className="space-y-3">
@@ -736,7 +765,7 @@ export default function Page() {
                   <ContactCard
                     contact={contact}
                     types={types}
-                    canEdit={isAdmin}
+                    canEdit={isEditor}
                     onEdit={openEdit}
                     onDelete={handleDelete}
                   />
@@ -749,7 +778,7 @@ export default function Page() {
         <>
           {childGroups.length > 0 && !isHome && (
             <section className="mb-8" aria-label="Groups">
-              <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+              <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
                 <span
                   aria-hidden="true"
                   className="h-2 w-2 rounded-full bg-linear-to-br from-rose-500 to-red-600"
@@ -766,7 +795,7 @@ export default function Page() {
                       logoUrl={group.logoUrl}
                       contactCount={directCountByGroup.get(group.id) ?? 0}
                       childCount={childrenByParent.get(group.id)?.length ?? 0}
-                      canEdit={isAdmin}
+                      canEdit={isEditor}
                       onOpen={() => openGroup(group.id)}
                       onEdit={() => openEditGroup(group)}
                       onDelete={() => handleDeleteGroup(group)}
@@ -780,7 +809,7 @@ export default function Page() {
           {visibleContacts.length > 0 && !isHome && (
             <section aria-label="Contacts">
               {childGroups.length > 0 && (
-                <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+                <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
                   <span
                     aria-hidden="true"
                     className="h-2 w-2 rounded-full bg-linear-to-br from-sky-500 to-blue-600"
@@ -794,7 +823,7 @@ export default function Page() {
                     <ContactCard
                       contact={contact}
                       types={types}
-                      canEdit={isAdmin}
+                      canEdit={isEditor}
                       onEdit={openEdit}
                       onDelete={handleDelete}
                     />
@@ -805,18 +834,18 @@ export default function Page() {
           )}
 
           {childGroups.length === 0 && visibleContacts.length === 0 && !isHome && (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center">
-              <p className="text-slate-500">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
+              <p className="text-slate-500 dark:text-slate-400">
                 {path.length === 0
                   ? "No groups or contacts yet."
                   : "This group is empty."}
               </p>
-              {isAdmin && (
+              {isEditor && (
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                   <button
                     type="button"
                     onClick={openAddGroup}
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                   >
                     <FolderIcon className="h-4 w-4" />
                     Add a group
@@ -836,25 +865,29 @@ export default function Page() {
         </>
       )}
 
-      <p className="mt-8 text-center text-xs text-slate-400">
+      <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">
         {saving
           ? "Saving…"
           : "Works offline · tap a number to call"}
-        {!isAdmin && (
-          <a href="/login" className="ml-1 text-slate-500 underline">
-            Admin sign in
+        {!isEditor && (
+          <a href="/login" className="ml-1 text-slate-500 underline dark:text-slate-400">
+            Sign in
           </a>
         )}
       </p>
 
-      {isAdmin && (
+      {isEditor && (
         <AdminBottomNav
+          isAdmin={isAdmin}
           onAddContact={openAdd}
           onAddGroup={openAddGroup}
           onManageTypes={openAddType}
+          onOpenSuggestions={() => router.push("/admin/suggestions")}
           onSignOut={handleLogout}
         />
       )}
+
+      <HelpWidget isAdmin={isAdmin} />
 
       <ContactForm
         key={`contact-${formKey}`}

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export function LoginForm() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +19,7 @@ export function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ identifier, password }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -39,26 +39,30 @@ export function LoginForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label
-          htmlFor="username"
-          className="mb-1.5 block text-sm font-medium text-slate-700"
+          htmlFor="identifier"
+          className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
         >
-          Username
+          Username or unit code
         </label>
         <input
-          id="username"
+          id="identifier"
           type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
           autoComplete="username"
           autoFocus
-          className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+          placeholder="e.g. admin1 or 20000"
+          className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500"
         />
+        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+          Admins use their username; station users use their unit code.
+        </p>
       </div>
 
       <div>
         <label
           htmlFor="password"
-          className="mb-1.5 block text-sm font-medium text-slate-700"
+          className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
         >
           Password
         </label>
@@ -68,12 +72,12 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
-          className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+          className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500"
         />
       </div>
 
       {error && (
-        <p className="rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-700 ring-1 ring-rose-200">
+        <p className="rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-700 ring-1 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/30">
           {error}
         </p>
       )}

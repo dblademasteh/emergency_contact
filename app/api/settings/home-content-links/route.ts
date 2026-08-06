@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
 const HOME_CONTENT_LINKS_KEY = "homeContentLinks";
 const MAX_LABEL_LENGTH = 40;
@@ -41,7 +41,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  if (!verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value)) {
+  if (!isAdminToken(request.cookies.get(SESSION_COOKIE)?.value)) {
     return NextResponse.json(
       { error: "Unauthorized. Admin access required." },
       { status: 401 }

@@ -1,6 +1,17 @@
 import type { MetadataRoute } from "next";
+import { prisma } from "@/lib/prisma";
 
-export default function manifest(): MetadataRoute.Manifest {
+// Read live from the DB so admin-uploaded logos apply without a rebuild.
+export const dynamic = "force-dynamic";
+
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const setting = await prisma.setting.findUnique({
+    where: { key: "appLogo" },
+  });
+  const hasLogo = Boolean(setting?.value);
+  const iconSrc = hasLogo ? "/app-logo" : "/icon-512x512.png";
+  const icon192 = hasLogo ? "/app-logo" : "/icon-192x192.png";
+
   return {
     name: "Emergency Contacts",
     short_name: "Emergency",
@@ -15,19 +26,19 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["utilities", "health", "safety"],
     icons: [
       {
-        src: "/icon-192x192.png",
+        src: icon192,
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon-512x512.png",
+        src: iconSrc,
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon-512x512.png",
+        src: iconSrc,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

@@ -41,7 +41,7 @@ export function GroupCard({
         : `${contactCount} ${contactCount === 1 ? "contact" : "contacts"}`;
 
   return (
-    <article className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg">
+    <article className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
       <button
         type="button"
         onClick={onOpen}
@@ -65,14 +65,14 @@ export function GroupCard({
         onClick={onOpen}
         className="min-w-0 flex-1 text-left"
       >
-        <h3 className="truncate font-bold text-slate-900">{name}</h3>
+        <h3 className="truncate font-bold text-slate-900 dark:text-slate-100">{name}</h3>
         <div className="mt-0.5 flex items-center gap-2">
           <span
             className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ${styles.badge}`}
           >
             {label}
           </span>
-          <span className="text-sm font-medium text-slate-500">{subCount}</span>
+          <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{subCount}</span>
         </div>
       </button>
 
@@ -80,7 +80,7 @@ export function GroupCard({
         type="button"
         onClick={onOpen}
         aria-label={`Open ${name}`}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
       >
         <ChevronRightIcon className="h-5 w-5" />
       </button>
@@ -91,7 +91,7 @@ export function GroupCard({
             type="button"
             onClick={onEdit}
             aria-label={`Edit ${name}`}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <EditIcon className="h-5 w-5" />
           </button>
@@ -99,7 +99,7 @@ export function GroupCard({
             type="button"
             onClick={onDelete}
             aria-label={`Delete ${name}`}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40 dark:text-slate-400 dark:hover:bg-rose-500/15 dark:hover:text-rose-400"
           >
             <TrashIcon className="h-5 w-5" />
           </button>

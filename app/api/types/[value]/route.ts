@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseContactTypeInput } from "@/lib/contact-types";
-import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ value: string }> };
 
 function isAdmin(request: NextRequest): boolean {
-  return verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value) !== null;
+  return isAdminToken(request.cookies.get(SESSION_COOKIE)?.value);
 }
 
 function unauthorized() {

@@ -32,6 +32,17 @@ model Admin {
   @@map("admins")
 }
 
+model User {
+  id           String   @id @default(cuid())
+  office       String
+  unitCode     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
 model Group {
   id        String   @id @default(cuid())
   name      String
@@ -82,4 +93,27 @@ model Setting {
   updatedAt DateTime @updatedAt
 
   @@map("settings")
+}
+
+model FaqItem {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("faq_items")
+}
+
+model Suggestion {
+  id        String   @id @default(cuid())
+  message   String
+  office    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+  @@map("suggestions")
 }

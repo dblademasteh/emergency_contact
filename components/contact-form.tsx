@@ -150,7 +150,7 @@ export function ContactForm({
   }
 
   const inputClass =
-    "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10";
+    "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500";
 
   return (
     <div
@@ -163,17 +163,17 @@ export function ContactForm({
         role="dialog"
         aria-modal="true"
         aria-label={initial ? "Edit contact" : "Add contact"}
-        className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:max-w-md sm:rounded-3xl"
+        className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:max-w-md sm:rounded-3xl dark:bg-slate-900"
       >
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             {initial ? "Edit contact" : "Add a contact"}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <XIcon className="h-5 w-5" />
           </button>
@@ -181,7 +181,7 @@ export function ContactForm({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-slate-700">
+            <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Name
             </label>
             <input
@@ -201,7 +201,7 @@ export function ContactForm({
               Logo <span className="font-normal text-slate-400">(optional)</span>
             </span>
             <div className="flex items-center gap-3">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-50 ring-1 ring-slate-200">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-50 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
                 {logoData ? (
                   <img
                     src={logoData}
@@ -219,7 +219,7 @@ export function ContactForm({
                 <button
                   type="button"
                   onClick={() => logoRef.current?.click()}
-                  className="rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                  className="rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
                   {logoData ? "Change logo" : "Upload logo"}
                 </button>
@@ -251,7 +251,7 @@ export function ContactForm({
           </div>
 
           <div>
-            <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-slate-700">
+            <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Phone number
             </label>
             <input
@@ -266,7 +266,7 @@ export function ContactForm({
           </div>
 
           <div>
-            <label htmlFor="type" className="mb-1.5 block text-sm font-medium text-slate-700">
+            <label htmlFor="type" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Category
             </label>
             <select
@@ -274,7 +274,7 @@ export function ContactForm({
               value={type}
               onChange={(e) => setType(e.target.value)}
               disabled={Boolean(groupId)}
-              className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500`}
+              className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 dark:disabled:bg-slate-800 dark:disabled:text-slate-500`}
             >
               {types.map((t) => (
                 <option key={t.value} value={t.value}>
@@ -285,8 +285,8 @@ export function ContactForm({
           </div>
 
           <div>
-            <label htmlFor="note" className="mb-1.5 block text-sm font-medium text-slate-700">
-              Note <span className="font-normal text-slate-400">(optional)</span>
+            <label htmlFor="note" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Note <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
             </label>
             <textarea
               id="note"
@@ -300,8 +300,8 @@ export function ContactForm({
           </div>
 
           <div>
-            <label htmlFor="contact-group" className="mb-1.5 block text-sm font-medium text-slate-700">
-              Group <span className="font-normal text-slate-400">(optional)</span>
+            <label htmlFor="contact-group" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Group <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
             </label>
             <select
               id="contact-group"
@@ -322,7 +322,7 @@ export function ContactForm({
               ))}
             </select>
             {groupId && (
-              <p className="mt-1.5 text-xs text-slate-400">
+              <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
                 Category is locked to the selected group.
               </p>
             )}
@@ -330,14 +330,14 @@ export function ContactForm({
 
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <label htmlFor="latitude" className="block text-sm font-medium text-slate-700">
-                Location <span className="font-normal text-slate-400">(optional)</span>
+              <label htmlFor="latitude" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Location <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
               </label>
               <button
                 type="button"
                 onClick={handleUseMyLocation}
                 disabled={locating}
-                className="text-xs font-semibold text-slate-600 transition hover:text-slate-900 disabled:opacity-60"
+                className="text-xs font-semibold text-slate-600 transition hover:text-slate-900 disabled:opacity-60 dark:text-slate-400 dark:hover:text-slate-100"
               >
                 {locating ? "Locating…" : "Use my location"}
               </button>
@@ -366,14 +366,14 @@ export function ContactForm({
                 />
               </div>
             </div>
-            <p className="mt-1.5 text-xs text-slate-400">
+            <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
               Opens in Google Maps when tapped. Both are required if you add a location.
             </p>
           </div>
 
           <div>
-            <label htmlFor="facebook-url" className="mb-1.5 block text-sm font-medium text-slate-700">
-              Facebook URL <span className="font-normal text-slate-400">(optional)</span>
+            <label htmlFor="facebook-url" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Facebook URL <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
             </label>
             <input
               id="facebook-url"
@@ -386,20 +386,20 @@ export function ContactForm({
             />
           </div>
 
-          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3">
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 dark:border-slate-700 dark:bg-slate-800">
             <input
               type="checkbox"
               checked={isPrimary}
               onChange={(e) => setIsPrimary(e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-rose-600 accent-rose-600"
             />
-            <span className="text-sm text-slate-700">
+            <span className="text-sm text-slate-700 dark:text-slate-300">
               Pin to the top as a primary contact
             </span>
           </label>
 
           {error && (
-            <p className="rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-700 ring-1 ring-rose-200">
+            <p className="rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-700 ring-1 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/30">
               {error}
             </p>
           )}
@@ -408,7 +408,7 @@ export function ContactForm({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+              className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               Cancel
             </button>

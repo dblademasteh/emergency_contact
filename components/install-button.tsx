@@ -43,7 +43,7 @@ export function InstallButton() {
         const { outcome } = await promptEvent.userChoice;
         if (outcome === "accepted") setPromptEvent(null);
       }}
-      className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50"
+      className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:bg-slate-800"
     >
       <DownloadIcon className="h-4 w-4" />
       Install

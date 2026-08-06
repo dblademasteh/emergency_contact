@@ -4,7 +4,7 @@ import {
   parseContactTypeInput,
   slugifyTypeValue,
 } from "@/lib/contact-types";
-import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
 export async function GET() {
   const types = await prisma.contactType.findMany({
@@ -14,7 +14,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  if (!verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value)) {
+  if (!isAdminToken(request.cookies.get(SESSION_COOKIE)?.value)) {
     return NextResponse.json(
       { error: "Unauthorized. Admin access required." },
       { status: 401 }

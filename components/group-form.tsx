@@ -111,7 +111,7 @@ export function GroupForm({
   }
 
   const inputClass =
-    "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10";
+    "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500";
 
   return (
     <div
@@ -124,17 +124,17 @@ export function GroupForm({
         role="dialog"
         aria-modal="true"
         aria-label={initial ? "Edit group" : "Add group"}
-        className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:max-w-md sm:rounded-3xl"
+        className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:max-w-md sm:rounded-3xl dark:bg-slate-900"
       >
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             {initial ? "Edit group" : "Add a group"}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <XIcon className="h-5 w-5" />
           </button>
@@ -142,7 +142,7 @@ export function GroupForm({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="group-name" className="mb-1.5 block text-sm font-medium text-slate-700">
+            <label htmlFor="group-name" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Name
             </label>
             <input
@@ -158,7 +158,7 @@ export function GroupForm({
           </div>
 
           <div>
-            <label htmlFor="group-type" className="mb-1.5 block text-sm font-medium text-slate-700">
+            <label htmlFor="group-type" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Category
             </label>
             <select
@@ -173,13 +173,13 @@ export function GroupForm({
                 </option>
               ))}
             </select>
-            <p className="mt-1.5 text-xs text-slate-400">
+            <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
               Contacts added to this group will use this category.
             </p>
           </div>
 
           <div>
-            <label htmlFor="group-parent" className="mb-1.5 block text-sm font-medium text-slate-700">
+            <label htmlFor="group-parent" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Parent
             </label>
             <select
@@ -204,7 +204,7 @@ export function GroupForm({
               Logo
             </span>
             <div className="flex items-center gap-3">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-50 ring-1 ring-slate-200">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-50 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
                 {logoData ? (
                   <img
                     src={logoData}
@@ -212,14 +212,14 @@ export function GroupForm({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <FolderIcon className="h-7 w-7 text-slate-400" />
+                  <FolderIcon className="h-7 w-7 text-slate-400 dark:text-slate-500" />
                 )}
               </div>
               <div className="flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                  className="rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
                   {logoData ? "Change logo" : "Upload logo"}
                 </button>
@@ -251,7 +251,7 @@ export function GroupForm({
           </div>
 
           {error && (
-            <p className="rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-700 ring-1 ring-rose-200">
+            <p className="rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-700 ring-1 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/30">
               {error}
             </p>
           )}
@@ -260,7 +260,7 @@ export function GroupForm({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+              className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               Cancel
             </button>

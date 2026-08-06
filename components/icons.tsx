@@ -144,3 +144,59 @@ export function ImageIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function SunIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0-13V2m0 20v-2m7-7h2M3 12h2m10.95-4.95 1.41-1.41M6.64 17.36-1.41 1.41m12.73 0-1.41-1.41M6.64 6.64 5.23 5.23" />
+    </svg>
+  );
+}
+
+export function MoonIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
+    </svg>
+  );
+}
+
+export function HelpIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm-.18-12.4a3.6 3.6 0 0 0-3.4 2.34c-.12.34.14.66.5.66h.06c.23 0 .44-.15.53-.37a2.25 2.25 0 0 1 2.13-1.42c1.18 0 2.14.85 2.14 1.9 0 .82-.52 1.28-1.42 1.84-.95.6-1.7 1.28-1.7 2.55v.4c0 .28.22.5.5.5h.6c.28 0 .5-.22.5-.5v-.4c0-.5.44-.85 1.2-1.33.93-.58 2.02-1.42 2.02-3.06 0-1.9-1.68-3.11-3.61-3.11zm.68 9.4a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0z" />
+    </svg>
+  );
+}
+
+export function MessageSquareIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
+    </svg>
+  );
+}
+
+export function SendIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M2 21 23 12 2 3v7l15 2-15 2v7z" />
+    </svg>
+  );
+}
+
+export function ChevronDownIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+    </svg>
+  );
+}
+
+export function CheckIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+    </svg>
+  );
+}

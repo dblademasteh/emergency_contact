@@ -1,23 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseContactInput } from "@/lib/contacts";
-import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-function isAdmin(request: NextRequest): boolean {
-  return verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value) !== null;
+function isEditor(request: NextRequest): boolean {
+  return isEditorToken(request.cookies.get(SESSION_COOKIE)?.value);
 }
 
 function unauthorized() {
-  return NextResponse.json(
-    { error: "Unauthorized. Admin access required." },
-    { status: 401 }
-  );
+  return NextResponse.json({ error: "Sign in required." }, { status: 401 });
 }
 
 export async function PATCH(request: NextRequest, ctx: Ctx) {
-  if (!isAdmin(request)) return unauthorized();
+  if (!isEditor(request)) return unauthorized();
 
   const { id } = await ctx.params;
   const body = await request.json().catch(() => null);
@@ -75,7 +72,7 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
 }
 
 export async function DELETE(request: NextRequest, ctx: Ctx) {
-  if (!isAdmin(request)) return unauthorized();
+  if (!isEditor(request)) return unauthorized();
 
   const { id } = await ctx.params;
 

@@ -14,43 +14,43 @@ export const CATEGORY_STYLES: Record<
   { badge: string; dot: string; active: string; tile: string }
 > = {
   rose: {
-    badge: "bg-rose-100 text-rose-700 ring-rose-200",
+    badge: "bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-500/30",
     dot: "bg-rose-500",
     active: "border-rose-600 bg-linear-to-r from-rose-600 to-red-500 text-white shadow-md shadow-rose-600/25",
     tile: "bg-linear-to-br from-rose-500 to-red-500",
   },
   blue: {
-    badge: "bg-blue-100 text-blue-700 ring-blue-200",
+    badge: "bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/30",
     dot: "bg-blue-500",
     active: "border-blue-600 bg-linear-to-r from-blue-600 to-sky-500 text-white shadow-md shadow-blue-600/25",
     tile: "bg-linear-to-br from-blue-500 to-sky-500",
   },
   orange: {
-    badge: "bg-orange-100 text-orange-700 ring-orange-200",
+    badge: "bg-orange-100 text-orange-700 ring-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:ring-orange-500/30",
     dot: "bg-orange-500",
     active: "border-orange-600 bg-linear-to-r from-orange-600 to-amber-500 text-white shadow-md shadow-orange-600/25",
     tile: "bg-linear-to-br from-orange-500 to-amber-500",
   },
   emerald: {
-    badge: "bg-emerald-100 text-emerald-700 ring-emerald-200",
+    badge: "bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-500/30",
     dot: "bg-emerald-500",
     active: "border-emerald-600 bg-linear-to-r from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-600/25",
     tile: "bg-linear-to-br from-emerald-500 to-teal-500",
   },
   violet: {
-    badge: "bg-violet-100 text-violet-700 ring-violet-200",
+    badge: "bg-violet-100 text-violet-700 ring-violet-200 dark:bg-violet-500/15 dark:text-violet-300 dark:ring-violet-500/30",
     dot: "bg-violet-500",
     active: "border-violet-600 bg-linear-to-r from-violet-600 to-purple-500 text-white shadow-md shadow-violet-600/25",
     tile: "bg-linear-to-br from-violet-500 to-purple-500",
   },
   amber: {
-    badge: "bg-amber-100 text-amber-700 ring-amber-200",
+    badge: "bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/30",
     dot: "bg-amber-500",
     active: "border-amber-500 bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25",
     tile: "bg-linear-to-br from-amber-400 to-orange-500",
   },
   slate: {
-    badge: "bg-slate-100 text-slate-600 ring-slate-200",
+    badge: "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-500/15 dark:text-slate-300 dark:ring-slate-500/30",
     dot: "bg-slate-400",
     active: "border-slate-700 bg-linear-to-r from-slate-700 to-slate-900 text-white shadow-md shadow-slate-700/25",
     tile: "bg-linear-to-br from-slate-500 to-slate-700",

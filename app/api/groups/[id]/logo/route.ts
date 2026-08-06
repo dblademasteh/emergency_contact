@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -8,9 +8,9 @@ const MAX_LOGO_LENGTH = 20_000_000;
 const LOGO_PATTERN = /^data:image\/(png|jpeg|webp|gif);base64,/;
 
 export async function POST(request: NextRequest, ctx: Ctx) {
-  if (!verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value)) {
+  if (!isEditorToken(request.cookies.get(SESSION_COOKIE)?.value)) {
     return NextResponse.json(
-      { error: "Unauthorized. Admin access required." },
+      { error: "Sign in required." },
       { status: 401 }
     );
   }
