@@ -38,14 +38,14 @@ export function HelpWidget({ isAdmin }: Props) {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
             type="button"
             aria-label="Close help"
             onClick={() => setOpen(false)}
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
           />
-          <div className="relative z-10 flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900 sm:rounded-3xl">
+          <div className="relative z-10 flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-800">
               <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
                 Help &amp; suggestions
