@@ -258,9 +258,9 @@ export function FaqPanel({ isAdmin }: Props) {
                 </div>
                 {isOpen && (
                   <div className="border-t border-slate-100 px-3.5 py-3 dark:border-slate-800">
-                    <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                       {item.answer}
-                    </p>
+                    </div>
                   </div>
                 )}
               </li>
