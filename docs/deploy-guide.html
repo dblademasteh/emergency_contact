@@ -116,17 +116,15 @@
 </div>
 
 <h2>2 · Deploy Changes to Production</h2>
-<p><span class="tag red">Step 1</span> &nbsp;On your PC — commit &amp; push after editing:</p>
+<p><span class="tag red">Step 1</span> &nbsp;On your PC — commit &amp; push, then package a <code>.tar.gz</code> (the NAS has no <code>unzip</code>, so never use <code>.zip</code>):</p>
 <pre><code>git add -A
 git commit -m "describe your change"
-git push</code></pre>
-<p><span class="tag red">Step 2</span> &nbsp;SSH into the NAS, then pull the new code:</p>
-<pre><code>ssh bfpr2@192.168.0.148
-cd /volume1/docker/emergency_contact
-git pull</code></pre>
-<p><span class="tag red">Step 3</span> &nbsp;Rebuild &amp; restart the app container:</p>
-<pre><code>sudo docker compose up -d --build</code></pre>
-<div class="card"><b>Tip:</b> Database migrations run automatically on container start — you don't need to run them manually.</div>
+git push
+git archive --format=tar.gz --output="$env:USERPROFILE\Desktop\emergency-contacts-deploy.tar.gz" HEAD</code></pre>
+<p><span class="tag red">Step 2</span> &nbsp;Upload the tarball via <b>File Station</b> into <code>/volume1/docker/</code> (no SSH needed):</p>
+<pre><code>/volume1/docker/emergency-contacts-deploy.tar.gz</code></pre>
+<p><span class="tag red">Step 3</span> &nbsp;In <b>Control Panel → Task Scheduler</b> run the <b>"Deploy emergency contacts"</b> task (as <b>root</b>). Its script extracts the tarball over <code>/volume1/docker/emergency_contact</code> with <code>tar -xzf</code>, then runs <code>docker compose down && docker compose up -d --build</code>, logging to <code>/volume1/docker/ec-deploy.log</code>.</p>
+<div class="card"><b>Tip:</b> Database migrations run automatically on container start — you don't need to run them manually. Full step-by-step runbook: <b><code>docs/DEPLOY.md</code></b> (in this repo).</div>
 
 <h2>3 · Access From Outside the Network</h2>
 <p><span class="tag green">Live URL</span> &nbsp;Your app is already exposed via a Cloudflare Tunnel:</p>
