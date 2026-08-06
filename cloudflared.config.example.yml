@@ -1,0 +1,24 @@
+# Cloudflare Tunnel config — copy this to ./cloudflared/config.yml on the NAS
+# and fill in the real tunnel ID + credentials filename.
+#
+# Steps to create the tunnel & credentials (run on the NAS from the repo dir):
+#   1) Login:
+#      sudo docker run --rm -it -v "$PWD/cloudflared:/home/nonroot/.cloudflared" \
+#        cloudflare/cloudflared tunnel login
+#      -> open the printed URL, authorize -> writes cert.pem into ./cloudflared
+#
+#   2) Create the named tunnel (prints an ID and writes a <UUID>.json file):
+#      sudo docker run --rm -v "$PWD/cloudflared:/home/nonroot/.cloudflared" \
+#        cloudflare/cloudflared tunnel create emergency-contacts
+#
+#   3) Put the real values below into ./cloudflared/config.yml
+
+tunnel: <YOUR_TUNNEL_UUID>
+credentials-file: /etc/cloudflared/<YOUR_TUNNEL_UUID>.json
+
+ingress:
+  # Route all incoming traffic for this tunnel to the app on port 3000 in the
+  # compose network. Public URL will be: https://<YOUR_TUNNEL_UUID>.cfargotunnel.com
+  - service: http://app:3000
+  # Cloudflare requires a final catch-all rule:
+  - service: http_status:404

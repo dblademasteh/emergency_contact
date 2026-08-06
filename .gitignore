@@ -36,9 +36,5 @@ yarn-error.log*
 # ...but ship the placeholder template (no real secrets) so the NAS knows what to set
 !.env.docker.example
 
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# cloudflare tunnel credentials & config (machine-specific, never commit)
+/cloudflared
