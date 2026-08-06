@@ -12,6 +12,12 @@ RUN apk add --no-cache libc6-compat openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# prisma.config.ts reads env("DATABASE_URL"), which is unset during `docker build`
+# (it's only supplied at runtime via docker-compose). `prisma generate` does not
+# connect to the DB, so a placeholder is enough to load the config.
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL:-postgresql://placeholder:placeholder@localhost:5432/placeholder}
+
 # Generate the Prisma client for the target platform (ARM64 on the NAS)
 RUN npx prisma generate
 
