@@ -874,16 +874,49 @@ export default function Page() {
         </>
       )}
 
-      <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">
-        {saving
-          ? "Saving…"
-          : "Works offline · tap a number to call"}
-        {!isEditor && (
-          <a href="/login" className="ml-1 text-slate-500 underline dark:text-slate-400">
-            Sign in
-          </a>
-        )}
-      </p>
+      <footer className="mt-10">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <span
+            aria-hidden="true"
+            className="hazard-stripes pointer-events-none absolute inset-x-0 top-0 h-1.5 opacity-60"
+          />
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-rose-500 via-red-600 to-red-800 text-white shadow-lg shadow-red-600/30">
+                {appLogo ? (
+                  <img
+                    src={appLogo}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <PhoneIcon className="h-5 w-5" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+                  Emergency Contacts
+                </p>
+                <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  {saving ? "Saving…" : "Works offline · tap a number to call"}
+                </p>
+              </div>
+            </div>
+            {!isEditor && (
+              <a
+                href="/login"
+                className="shrink-0 text-sm font-semibold text-rose-600 transition hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+              >
+                Sign in
+              </a>
+            )}
+          </div>
+        </div>
+      </footer>
 
       {isEditor && (
         <AdminBottomNav
