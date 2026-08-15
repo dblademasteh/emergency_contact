@@ -42,5 +42,8 @@ yarn-error.log*
 # cloudflare tunnel credentials & config (machine-specific, never commit)
 /cloudflared
 
+# deploy artifact (regenerate with `git archive` when shipping to the NAS)
+/emergency-contacts-deploy.tar.gz
+
 # local PDF generator (tools/pdf/node_modules is large; regenerate on demand)
 /tools/pdf/node_modules
