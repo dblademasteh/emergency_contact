@@ -1,16 +1,41 @@
-# Cloudflare Tunnel config — copy this to ./cloudflared/config.yml on the NAS
-# and fill in the real tunnel ID + credentials filename.
+# Cloudflare Tunnel setup for docker-compose.yml
 #
-# Steps to create the tunnel & credentials (run on the NAS from the repo dir):
-#   1) Login:
+# The compose file uses a REMOTELY-MANAGED (token-based) tunnel — no local
+# config file needed. Ingress rules are managed in the Cloudflare dashboard
+# (Zero Trust → Networks → Tunnels → <tunnel> → Public Hostname), not here.
+#
+# ── Token-based tunnel (RECOMMENDED — used by docker-compose.yml) ─────────────
+#   1) Create the tunnel (remotely-managed) at:
+#      Zero Trust → Networks → Tunnels → Create a tunnel → Docker
+#   2) Copy the `--token eyJ...` value from the install command it prints.
+#   3) Put it in `.env` as:
+#        CLOUDFLARED_TOKEN=eyJ...
+#   4) Deploy: docker compose up -d
+#
+#   ⚠ If the token expires ("token has expired" / tunnel won't connect):
+#      - Dashboard: Zero Trust → Networks → Tunnels → <tunnel> → Overview →
+#        Configure → copy the fresh `--token eyJ...` value.
+#      - Update CLOUDFLARED_TOKEN in `.env`, then: docker compose up -d cloudflared
+#
+# ── Locally-managed tunnel (ALTERNATIVE) ──────────────────────────────────────
+# If you prefer a local config.yml instead of a token, replace the compose
+# cloudflared service with:
+#
+#   cloudflared:
+#     image: cloudflare/cloudflared:latest
+#     container_name: emergency-contacts-cloudflared
+#     restart: unless-stopped
+#     volumes:
+#       - ./cloudflared:/etc/cloudflared
+#     command: tunnel --no-autoupdate --config /etc/cloudflared/config.yml run
+#
+# and create ./cloudflared (git-ignored) on the NAS with:
+#   1) Login (writes cert.pem):
 #      sudo docker run --rm -it -v "$PWD/cloudflared:/home/nonroot/.cloudflared" \
 #        cloudflare/cloudflared tunnel login
-#      -> open the printed URL, authorize -> writes cert.pem into ./cloudflared
-#
-#   2) Create the named tunnel (prints an ID and writes a <UUID>.json file):
+#   2) Create the named tunnel (prints an ID, writes a <UUID>.json):
 #      sudo docker run --rm -v "$PWD/cloudflared:/home/nonroot/.cloudflared" \
 #        cloudflare/cloudflared tunnel create emergency-contacts
-#
 #   3) Put the real values below into ./cloudflared/config.yml
 
 tunnel: <YOUR_TUNNEL_UUID>

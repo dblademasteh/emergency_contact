@@ -34,8 +34,16 @@ services:
       - "8080:3000"
 
   # Exposes the app to the internet via a Cloudflare Tunnel (no port forwarding).
-  # The tunnel credentials (cert.pem, <id>.json, config.yml) live in ./cloudflared
-  # which is git-ignored. See cloudflared.config.example.yml for the config format.
+  # Uses a REMOTELY-MANAGED tunnel: a token (from the Zero Trust dashboard)
+  # tells cloudflared which tunnel to join. Ingress rules live on Cloudflare's
+  # side (Zero Trust → Networks → Tunnels → <tunnel> → Public Hostname), so no
+  # local config file is needed.
+  #
+  # Get/refresh the token: Zero Trust → Networks → Tunnels → <tunnel> →
+  # Overview → Configure → Docker → copy the `--token eyJ...` value.
+  # If the token expires (cloudflared log: "token has expired" / won't connect),
+  # grab a fresh one from the dashboard, update CLOUDFLARED_TOKEN in `.env`,
+  # then: docker compose up -d cloudflared
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: emergency-contacts-cloudflared
@@ -43,9 +51,7 @@ services:
     depends_on:
       app:
         condition: service_started
-    volumes:
-      - ./cloudflared:/etc/cloudflared
-    command: tunnel --config /etc/cloudflared/config.yml run
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TOKEN}
 
 volumes:
   pgdata:

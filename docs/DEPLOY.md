@@ -24,8 +24,8 @@ git archive --format=tar.gz --output="$env:USERPROFILE\Desktop\emergency-contact
 
 Sanity-check it (optional): `git archive` excludes `node_modules`, `.next`, and
 anything gitignored — so real secrets (`.env`, `cloudflared/`) are **not** included.
-The NAS's existing `.env` and `./cloudflared` are preserved because the tarball
-never touches them.
+The NAS's existing `.env` (Postgres passwords, `SESSION_SECRET`, the Cloudflare
+tunnel token) is preserved because the tarball never touches it.
 
 ---
 
@@ -103,7 +103,8 @@ Click **OK** (this actually saves it). Then select the task and press **Run**.
 | Postgres log: `Database is uninitialized and superuser password is not specified` | `.env` on NAS has empty `POSTGRES_PASSWORD`, or the DB volume was wiped/re-created | In `/volume1/docker/emergency_contact/.env` set a **non-empty** `POSTGRES_PASSWORD` and a long `SESSION_SECRET`, then run the task again. |
 | Task "runs" but nothing changes | Script failed silently / wrong archive | Check `/volume1/docker/ec-deploy.log` — it captures every command's output. |
 | Can't sign in as admin after a fresh DB | DB re-initialized; admin accounts come from `prisma/seed.ts` (random passwords) which does **not** auto-run on boot | Recreate admins: on the NAS run `npx prisma db seed` (prints the random admin passwords) or add admins manually. The **8 category types** and **10 tutorial FAQs** come back automatically via migrations. |
-| Cloudflare tunnel URL not loading | `cloudflared` container down | In the Task Scheduler runbook use `docker compose up -d` (starts all services incl. `cloudflared`). Tunnel config lives in `./cloudflared` (git-ignored, preserved). |
+| Cloudflare tunnel URL not loading | `cloudflared` container down | In the Task Scheduler runbook use `docker compose up -d` (starts all services incl. `cloudflared`). |
+| Tunnel token expired (log: `token has expired` / tunnel "Inactive" in dashboard but container is up) | The remotely-managed tunnel token rotated/expired | Get a fresh token: **Zero Trust → Networks → Tunnels → `<tunnel>` → Overview → Configure → Docker**, copy the `--token eyJ...` value into `CLOUDFLARED_TOKEN` in `/volume1/docker/emergency_contact/.env`, then run the deploy task again (or `docker compose up -d cloudflared`). Ingress rules live on Cloudflare's side — no repo change needed. |
 
 ---
 
