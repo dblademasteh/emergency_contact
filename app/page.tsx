@@ -665,6 +665,30 @@ export default function Page() {
         />
       </div>
 
+      {searching && !loading && (
+        <>
+          {visibleContacts.length === 0 ? (
+            <div className="mb-6 rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
+              <p className="text-slate-500 dark:text-slate-400">No contacts match your search.</p>
+            </div>
+          ) : (
+            <ul className="mb-6 space-y-3">
+              {visibleContacts.map((contact) => (
+                <li key={contact.id}>
+                  <ContactCard
+                    contact={contact}
+                    types={types}
+                    canEdit={isEditor}
+                    onEdit={openEdit}
+                    onDelete={handleDelete}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+
       <EmergencyBanner />
 
       <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1">
@@ -761,29 +785,7 @@ export default function Page() {
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
           {loadError} Pull to refresh, or reload the page.
         </div>
-      ) : searching ? (
-        <>
-          {visibleContacts.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
-              <p className="text-slate-500 dark:text-slate-400">No contacts match your search.</p>
-            </div>
-          ) : (
-            <ul className="space-y-3">
-              {visibleContacts.map((contact) => (
-                <li key={contact.id}>
-                  <ContactCard
-                    contact={contact}
-                    types={types}
-                    canEdit={isEditor}
-                    onEdit={openEdit}
-                    onDelete={handleDelete}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
-      ) : (
+      ) : searching ? null : (
         <>
           {childGroups.length > 0 && !isHome && (
             <section className="mb-8" aria-label="Groups">
