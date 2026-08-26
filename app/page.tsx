@@ -15,6 +15,7 @@ import { ContactCard } from "@/components/contact-card";
 import { ContactForm } from "@/components/contact-form";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmergencyBanner } from "@/components/emergency-banner";
+import { CsvImport } from "@/components/csv-import";
 import { GroupCard } from "@/components/group-card";
 import { GroupForm } from "@/components/group-form";
 import { HomeImage } from "@/components/home-image";
@@ -737,6 +738,19 @@ export default function Page() {
           </button>
         )}
       </div>
+
+      {isAdmin && (
+        <div className="mb-4 flex items-center gap-2">
+          <CsvImport
+            defaultType={filter !== "ALL" ? filter : undefined}
+            defaultGroupId={currentGroupId ?? undefined}
+            onImported={loadAll}
+          />
+          <span className="text-xs text-slate-400">
+            CSV columns: name, phone, type, note, facebook, primary
+          </span>
+        </div>
+      )}
 
       <EmergencyBanner />
 

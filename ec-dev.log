@@ -1,0 +1,11 @@
+
+> emergency-contacts@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.0 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://100.69.120.73:3000
+- Environments: .env
+✓ Ready in 1180ms
+✓ Running next.config.ts took 358ms
+
