@@ -15,6 +15,19 @@ type Props = {
   onImported: () => void;
 };
 
+function downloadTemplate() {
+  const headers = ["name", "phone", "type", "note", "facebook", "primary", "group_id"];
+  const sample = ["Juan Dela Cruz", "09171234567", "POLICE", "Barangay Captain", "https://facebook.com/juan.delacruz", "false", ""];
+  const csv = [headers.join(","), sample.map((v) => `"${v}"`).join(",")].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "contacts_template.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function CsvImport({
   defaultType,
   defaultGroupId,
@@ -129,6 +142,13 @@ export function CsvImport({
               <p className="mt-1 text-xs text-slate-400">
                 Columns: name, phone, type, note, facebook, primary, group_id
               </p>
+              <button
+                type="button"
+                onClick={downloadTemplate}
+                className="mt-2 text-xs font-medium text-slate-500 underline hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+              >
+                Download template
+              </button>
             </div>
 
             {csvText && !result && (
