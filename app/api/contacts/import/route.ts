@@ -7,6 +7,8 @@ type Row = {
   phone: string;
   type?: string;
   note?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   facebookUrl?: string;
   isPrimary?: boolean;
   groupId?: string;
@@ -66,15 +68,30 @@ function parseCsv(text: string): Row[] {
 
     const rawType = obj["type"] ?? obj["category"] ?? obj["category_type"] ?? "";
     const note = obj["note"] ?? obj["notes"] ?? obj["remarks"] ?? "";
+    const rawLat = obj["latitude"] ?? obj["lat"] ?? "";
+    const rawLng = obj["longitude"] ?? obj["lng"] ?? obj["lon"] ?? "";
     const facebookUrl = obj["facebook"] ?? obj["facebook_url"] ?? obj["fb"] ?? "";
     const rawPrimary = obj["primary"] ?? obj["is_primary"] ?? obj["pin"] ?? "";
     const groupId = obj["group_id"] ?? obj["group"] ?? "";
+
+    let latitude: number | null = null;
+    let longitude: number | null = null;
+    if (rawLat && rawLng) {
+      const lat = parseFloat(rawLat);
+      const lng = parseFloat(rawLng);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        latitude = lat;
+        longitude = lng;
+      }
+    }
 
     rows.push({
       name: name.trim(),
       phone: phone.trim(),
       type: rawType.trim().toUpperCase().replace(/\s+/g, "_") || undefined,
       note: note.trim() || undefined,
+      latitude,
+      longitude,
       facebookUrl: facebookUrl.trim() || undefined,
       isPrimary: rawPrimary === "1" || rawPrimary.toLowerCase() === "true" || rawPrimary.toLowerCase() === "yes",
       groupId: groupId.trim() || undefined,
@@ -157,6 +174,8 @@ export async function POST(request: NextRequest) {
           phone: row.phone,
           type,
           note: row.note ?? null,
+          latitude: row.latitude,
+          longitude: row.longitude,
           facebookUrl: row.facebookUrl ?? null,
           isPrimary: row.isPrimary ?? false,
           groupId: row.groupId || defaultGroupId || null,

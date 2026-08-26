@@ -16,8 +16,8 @@ type Props = {
 };
 
 function downloadTemplate() {
-  const headers = ["name", "phone", "type", "note", "facebook", "primary", "group_id"];
-  const sample = ["Juan Dela Cruz", "09171234567", "POLICE", "Barangay Captain", "https://facebook.com/juan.delacruz", "false", ""];
+  const headers = ["name", "phone", "type", "note", "latitude", "longitude", "facebook", "primary", "group_id"];
+  const sample = ["Juan Dela Cruz", "09171234567", "POLICE", "Barangay Captain", "14.5995", "120.9842", "https://facebook.com/juan.delacruz", "false", ""];
   const csv = [headers.join(","), sample.map((v) => `"${v}"`).join(",")].join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
@@ -140,7 +140,7 @@ export function CsvImport({
                 {fileName ?? "Choose CSV file"}
               </button>
               <p className="mt-1 text-xs text-slate-400">
-                Columns: name, phone, type, note, facebook, primary, group_id
+                Columns: name, phone, type, note, latitude, longitude, facebook, primary, group_id
               </p>
               <button
                 type="button"
