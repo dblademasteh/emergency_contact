@@ -51,7 +51,9 @@ services:
     depends_on:
       app:
         condition: service_started
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TOKEN}
+    # --protocol http2 runs the tunnel over TCP/443 instead of QUIC/UDP,
+    # which survives NATs/routers that stall long-lived UDP flows.
+    command: tunnel --no-autoupdate --protocol http2 run --token ${CLOUDFLARED_TOKEN}
 
 volumes:
   pgdata:
