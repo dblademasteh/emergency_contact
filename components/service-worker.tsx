@@ -7,6 +7,11 @@ export function ServiceWorkerRegistration() {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js", { scope: "/" })
+        .then((reg) => {
+          const check = () => reg.update().catch(() => {});
+          check();
+          setInterval(check, 60 * 60 * 1000);
+        })
         .catch((err) => console.warn("Service worker registration failed:", err));
     }
   }, []);

@@ -1,4 +1,4 @@
-const VERSION = "v2";
+const VERSION = "v3";
 const APP_SHELL_CACHE = `emergency-shell-${VERSION}`;
 const DATA_CACHE = `emergency-data-${VERSION}`;
 
