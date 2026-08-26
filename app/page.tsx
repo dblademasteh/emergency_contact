@@ -285,12 +285,12 @@ export default function Page() {
   const visibleContacts = useMemo(() => {
     const q = query.trim().toLowerCase();
     return contacts.filter((c) => {
-      if (filter !== "ALL" && c.type !== filter) return false;
       if (q) {
         return (
           c.name.toLowerCase().includes(q) || c.phone.toLowerCase().includes(q)
         );
       }
+      if (filter !== "ALL" && c.type !== filter) return false;
       if (c.groupId !== currentGroupId) return false;
       return true;
     });
