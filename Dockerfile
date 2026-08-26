@@ -12,6 +12,10 @@ RUN apk add --no-cache libc6-compat openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Normalize file modes: deploy flows on the NAS (tarball extracts as root) can
+# leave context files unreadable (mode 000), which breaks the non-root runner.
+RUN chmod -R a+rX /app
+
 # prisma.config.ts reads env("DATABASE_URL"), which is unset during `docker build`
 # (it's only supplied at runtime via docker-compose). `prisma generate` does not
 # connect to the DB, so a placeholder is enough to load the config.
