@@ -17,7 +17,8 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmergencyBanner } from "@/components/emergency-banner";
 import { GroupCard } from "@/components/group-card";
 import { GroupForm } from "@/components/group-form";
-import { HomeImage, type HomeContentLink } from "@/components/home-image";
+import { HomeImage } from "@/components/home-image";
+import { FacebookFeed } from "@/components/facebook-feed";
 import { InstallButton } from "@/components/install-button";
 import { LogoManager } from "@/components/logo-manager";
 import { OfflineBanner } from "@/components/offline-banner";
@@ -64,10 +65,8 @@ export default function Page() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [types, setTypes] = useState<ContactType[]>([]);
   const [homeImage, setHomeImage] = useState<string | null>(null);
-  const [homeContentImage, setHomeContentImage] = useState<string | null>(null);
-  const [homeContentLinks, setHomeContentLinks] = useState<HomeContentLink[]>(
-    []
-  );
+  const [facebookPageUrl, setFacebookPageUrl] = useState<string | null>(null);
+  const [bfpSiteUrl, setBfpSiteUrl] = useState<string | null>(null);
   const [appLogo, setAppLogo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -77,6 +76,8 @@ export default function Page() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("ALL");
   const [currentGroupId, setCurrentGroupId] = useState<string | null>(null);
+  const [showAllTypes, setShowAllTypes] = useState(true);
+  const [showAllContacts, setShowAllContacts] = useState(false);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Contact | null>(null);
@@ -101,20 +102,20 @@ export default function Page() {
   const [confirmBusy, setConfirmBusy] = useState(false);
 
   const loadAll = useCallback(async () => {
-    const [contactsRes, groupsRes, typesRes, homeRes, contentRes, linksRes, logoRes] =
+    const [contactsRes, groupsRes, typesRes, homeRes, fbRes, bfpRes, logoRes] =
       await Promise.all([
         fetch("/api/contacts"),
         fetch("/api/groups"),
         fetch("/api/types"),
         fetch("/api/settings/home-image"),
-        fetch("/api/settings/home-content-image"),
-        fetch("/api/settings/home-content-links"),
+        fetch("/api/settings/facebook-page"),
+        fetch("/api/settings/bfp-site"),
         fetch("/api/settings/app-logo"),
       ]);
     if (!contactsRes.ok) throw new Error(`Contacts request failed (${contactsRes.status})`);
     if (!groupsRes.ok) throw new Error(`Groups request failed (${groupsRes.status})`);
     if (!typesRes.ok) throw new Error(`Types request failed (${typesRes.status})`);
-    const [contactData, groupData, typeData, homeData, contentData, linksData, logoData] =
+    const [contactData, groupData, typeData, homeData, fbData, bfpData, logoData] =
       await Promise.all([
         contactsRes.json() as Promise<Contact[]>,
         groupsRes.json() as Promise<Group[]>,
@@ -122,12 +123,12 @@ export default function Page() {
         homeRes.ok
           ? (homeRes.json() as Promise<{ image?: string | null }>)
           : Promise.resolve({ image: null }),
-        contentRes.ok
-          ? (contentRes.json() as Promise<{ image?: string | null }>)
-          : Promise.resolve({ image: null }),
-        linksRes.ok
-          ? (linksRes.json() as Promise<{ links?: HomeContentLink[] }>)
-          : Promise.resolve({ links: [] }),
+        fbRes.ok
+          ? (fbRes.json() as Promise<{ url?: string | null }>)
+          : Promise.resolve({ url: null }),
+        bfpRes.ok
+          ? (bfpRes.json() as Promise<{ url?: string | null }>)
+          : Promise.resolve({ url: null }),
         logoRes.ok
           ? (logoRes.json() as Promise<{ logo?: string | null }>)
           : Promise.resolve({ logo: null }),
@@ -136,8 +137,8 @@ export default function Page() {
     setGroups(sortGroups(groupData));
     setTypes(sortTypes(typeData));
     setHomeImage(homeData?.image ?? null);
-    setHomeContentImage(contentData?.image ?? null);
-    setHomeContentLinks(linksData?.links ?? []);
+    setFacebookPageUrl(fbData?.url ?? null);
+    setBfpSiteUrl(bfpData?.url ?? null);
     setAppLogo(logoData?.logo ?? null);
   }, []);
 
@@ -148,11 +149,11 @@ export default function Page() {
       fetch("/api/groups"),
       fetch("/api/types"),
       fetch("/api/settings/home-image"),
-      fetch("/api/settings/home-content-image"),
-      fetch("/api/settings/home-content-links"),
+      fetch("/api/settings/facebook-page"),
+      fetch("/api/settings/bfp-site"),
       fetch("/api/settings/app-logo"),
     ])
-      .then(([contactsRes, groupsRes, typesRes, homeRes, contentRes, linksRes, logoRes]) => {
+      .then(([contactsRes, groupsRes, typesRes, homeRes, fbRes, bfpRes, logoRes]) => {
         if (!contactsRes.ok) throw new Error(`Contacts request failed (${contactsRes.status})`);
         if (!groupsRes.ok) throw new Error(`Groups request failed (${groupsRes.status})`);
         if (!typesRes.ok) throw new Error(`Types request failed (${typesRes.status})`);
@@ -163,25 +164,25 @@ export default function Page() {
           homeRes.ok
             ? (homeRes.json() as Promise<{ image?: string | null }>)
             : Promise.resolve({ image: null }),
-          contentRes.ok
-            ? (contentRes.json() as Promise<{ image?: string | null }>)
-            : Promise.resolve({ image: null }),
-          linksRes.ok
-            ? (linksRes.json() as Promise<{ links?: HomeContentLink[] }>)
-            : Promise.resolve({ links: [] }),
+          fbRes.ok
+            ? (fbRes.json() as Promise<{ url?: string | null }>)
+            : Promise.resolve({ url: null }),
+          bfpRes.ok
+            ? (bfpRes.json() as Promise<{ url?: string | null }>)
+            : Promise.resolve({ url: null }),
           logoRes.ok
             ? (logoRes.json() as Promise<{ logo?: string | null }>)
             : Promise.resolve({ logo: null }),
         ]);
       })
-      .then(([contactData, groupData, typeData, homeData, contentData, linksData, logoData]) => {
+      .then(([contactData, groupData, typeData, homeData, fbData, bfpData, logoData]) => {
         if (cancelled) return;
         setContacts(sortContacts(contactData));
         setGroups(sortGroups(groupData));
         setTypes(sortTypes(typeData));
         setHomeImage(homeData?.image ?? null);
-        setHomeContentImage(contentData?.image ?? null);
-        setHomeContentLinks(linksData?.links ?? []);
+        setFacebookPageUrl(fbData?.url ?? null);
+        setBfpSiteUrl(bfpData?.url ?? null);
         setAppLogo(logoData?.logo ?? null);
         setLoadError(null);
       })
@@ -618,7 +619,7 @@ export default function Page() {
           </div>
           <div>
             <h1 className="text-lg font-extrabold leading-tight tracking-tight text-slate-900 dark:text-slate-100">
-              Emergency Contacts
+              Beep Me App V2.0
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {primaryCount > 0
@@ -673,7 +674,7 @@ export default function Page() {
             </div>
           ) : (
             <ul className="mb-6 space-y-3">
-              {visibleContacts.map((contact) => (
+              {(showAllContacts ? visibleContacts : visibleContacts.slice(0, 3)).map((contact) => (
                 <li key={contact.id}>
                   <ContactCard
                     contact={contact}
@@ -686,10 +687,17 @@ export default function Page() {
               ))}
             </ul>
           )}
+          {visibleContacts.length > 3 && (
+            <button
+              type="button"
+              onClick={() => setShowAllContacts(!showAllContacts)}
+              className="mb-6 w-full rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              {showAllContacts ? "Show less" : `Show all ${visibleContacts.length} contacts`}
+            </button>
+          )}
         </>
       )}
-
-      <EmergencyBanner />
 
       <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1">
         <button
@@ -704,7 +712,7 @@ export default function Page() {
           <Home className="h-4 w-4" />
           Home
         </button>
-        {types.map((t) => {
+        {types.slice(0, showAllTypes ? undefined : 3).map((t) => {
           const Icon = categoryIcon(t.icon);
           const activeCls = categoryStyle(t.color).active;
           return (
@@ -719,18 +727,26 @@ export default function Page() {
             </button>
           );
         })}
+        {types.length > 3 && (
+          <button
+            type="button"
+            onClick={() => setShowAllTypes(!showAllTypes)}
+            className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            {showAllTypes ? "Less" : `+${types.length - 3}`}
+          </button>
+        )}
       </div>
 
+      <EmergencyBanner />
+
       {isHome && (
-        <HomeImage
-          image={homeContentImage}
+        <FacebookFeed
+          pageUrl={facebookPageUrl}
+          bfpSiteUrl={bfpSiteUrl}
           isAdmin={isAdmin}
-          onChanged={setHomeContentImage}
-          endpoint="/api/settings/home-content-image"
-          placeholder="Add a photo"
-          alt="Home content"
-          links={homeContentLinks}
-          onLinksChanged={setHomeContentLinks}
+          onChanged={setFacebookPageUrl}
+          onBfpChanged={setBfpSiteUrl}
         />
       )}
 
@@ -829,7 +845,7 @@ export default function Page() {
                 </h2>
               )}
               <ul className="space-y-3">
-                {visibleContacts.map((contact) => (
+                {(showAllContacts ? visibleContacts : visibleContacts.slice(0, 3)).map((contact) => (
                   <li key={contact.id}>
                     <ContactCard
                       contact={contact}
@@ -841,6 +857,15 @@ export default function Page() {
                   </li>
                 ))}
               </ul>
+              {visibleContacts.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllContacts(!showAllContacts)}
+                  className="mt-3 w-full rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  {showAllContacts ? "Show less" : `Show all ${visibleContacts.length} contacts`}
+                </button>
+              )}
             </section>
           )}
 

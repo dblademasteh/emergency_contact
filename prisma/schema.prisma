@@ -117,3 +117,15 @@ model Suggestion {
   @@index([createdAt])
   @@map("suggestions")
 }
+
+model BfpCornerEntry {
+  id        String   @id @default(cuid())
+  title     String
+  youtubeUrl String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("bfp_corner_entries")
+}

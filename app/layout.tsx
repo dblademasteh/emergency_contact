@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Emergency Contacts",
+  title: "Beep Me App V2.0",
   description:
     "Your personal directory for emergency contacts — police, fire, medical, family and more. Works offline.",
-  applicationName: "Emergency Contacts",
+  applicationName: "Beep Me App V2.0",
   manifest: "/manifest.webmanifest",
   icons: {
     // Both resolve at request time: /app-logo serves the admin logo when set,
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Emergency Contacts",
+    title: "Beep Me App V2.0",
     statusBarStyle: "black-translucent",
   },
 };
@@ -44,6 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
         <script

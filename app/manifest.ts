@@ -13,7 +13,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const icon192 = hasLogo ? "/app-logo" : "/icon-192x192.png";
 
   return {
-    name: "Emergency Contacts",
+    name: "Beep Me App V2.0",
     short_name: "Emergency",
     description:
       "Your personal directory for emergency contacts — police, fire, medical, family and more. Works offline.",
