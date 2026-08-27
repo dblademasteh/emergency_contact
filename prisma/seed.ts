@@ -1,13 +1,9 @@
 import "dotenv/config";
 import { randomBytes } from "node:crypto";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { db } from "@/db";
+import { contactTypes, admins, contacts } from "@/db/schema";
+import { count, eq } from "drizzle-orm";
 import { hashPassword } from "../lib/passwords";
-
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
-});
-const prisma = new PrismaClient({ adapter });
 
 type SeedContact = {
   name: string;
@@ -99,11 +95,10 @@ const defaultTypes = [
 
 async function main() {
   for (const t of defaultTypes) {
-    await prisma.contactType.upsert({
-      where: { value: t.value },
-      update: {},
-      create: t,
-    });
+    await db
+      .insert(contactTypes)
+      .values(t)
+      .onConflictDoNothing({ target: contactTypes.value });
   }
 
   const adminSeeds = [
@@ -113,25 +108,26 @@ async function main() {
   ];
 
   for (const a of adminSeeds) {
-    const exists = await prisma.admin.findUnique({
-      where: { username: a.username },
-    });
+    const [exists] = await db
+      .select({ username: admins.username })
+      .from(admins)
+      .where(eq(admins.username, a.username))
+      .limit(1);
     if (exists) continue;
-    await prisma.admin.create({
-      data: { username: a.username, passwordHash: hashPassword(a.password) },
+    await db.insert(admins).values({
+      username: a.username,
+      passwordHash: hashPassword(a.password),
     });
     console.log(`Created admin account: ${a.username} / ${a.password}`);
   }
 
-  const existing = await prisma.contact.count();
+  const [{ value: existing }] = await db.select({ value: count() }).from(contacts);
   if (existing > 0) {
     console.log(`Skipping seed: ${existing} contact(s) already exist.`);
     return;
   }
 
-  await prisma.contact.createMany({
-    data: seeds,
-  });
+  await db.insert(contacts).values(seeds);
   console.log(`Seeded ${seeds.length} emergency contacts.`);
 }
 
@@ -141,5 +137,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await db.$client.end();
   });

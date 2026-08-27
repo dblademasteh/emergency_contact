@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { contacts, groups, contactTypes } from "@/db/schema";
+import { and, asc, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { parseContactInput } from "@/lib/contacts";
 import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
 
@@ -10,30 +12,25 @@ export async function GET(request: NextRequest) {
   const primaryOnly = searchParams.get("primary") === "1";
   const group = searchParams.get("group") ?? "";
 
-  const where = {
-    ...(q
-      ? {
-          OR: [
-            { name: { contains: q, mode: "insensitive" as const } },
-            { phone: { contains: q, mode: "insensitive" as const } },
-          ],
-        }
-      : {}),
-    ...(type ? { type } : {}),
-    ...(primaryOnly ? { isPrimary: true } : {}),
-    ...(group === "__root__"
-      ? { groupId: null }
-      : group
-        ? { groupId: group }
-        : {}),
-  };
+  const conditions = [];
+  if (q) {
+    conditions.push(or(ilike(contacts.name, `%${q}%`), ilike(contacts.phone, `%${q}%`)));
+  }
+  if (type) conditions.push(eq(contacts.type, type));
+  if (primaryOnly) conditions.push(eq(contacts.isPrimary, true));
+  if (group === "__root__") {
+    conditions.push(isNull(contacts.groupId));
+  } else if (group) {
+    conditions.push(eq(contacts.groupId, group));
+  }
 
-  const contacts = await prisma.contact.findMany({
-    where,
-    orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
-  });
+  const rows = await db
+    .select()
+    .from(contacts)
+    .where(conditions.length ? and(...conditions) : undefined)
+    .orderBy(desc(contacts.isPrimary), asc(contacts.sortOrder), asc(contacts.name));
 
-  return NextResponse.json(contacts);
+  return NextResponse.json(rows);
 }
 
 export async function POST(request: NextRequest) {
@@ -53,9 +50,11 @@ export async function POST(request: NextRequest) {
   const { data } = parsed;
   let type = data.type;
   if (data.groupId) {
-    const group = await prisma.group.findUnique({
-      where: { id: data.groupId },
-    });
+    const [group] = await db
+      .select()
+      .from(groups)
+      .where(eq(groups.id, data.groupId))
+      .limit(1);
     if (!group) {
       return NextResponse.json(
         { error: "Group not found." },
@@ -64,9 +63,11 @@ export async function POST(request: NextRequest) {
     }
     type = group.type;
   } else {
-    const typeInfo = await prisma.contactType.findUnique({
-      where: { value: data.type },
-    });
+    const [typeInfo] = await db
+      .select()
+      .from(contactTypes)
+      .where(eq(contactTypes.value, data.type))
+      .limit(1);
     if (!typeInfo) {
       return NextResponse.json(
         { error: "Category not found." },
@@ -75,8 +76,9 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const contact = await prisma.contact.create({
-    data: {
+  const [contact] = await db
+    .insert(contacts)
+    .values({
       name: data.name,
       phone: data.phone,
       type,
@@ -86,8 +88,8 @@ export async function POST(request: NextRequest) {
       facebookUrl: data.facebookUrl,
       isPrimary: data.isPrimary ?? false,
       groupId: data.groupId,
-    },
-  });
+    })
+    .returning();
 
   return NextResponse.json(contact, { status: 201 });
 }

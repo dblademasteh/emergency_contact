@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { settings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { AuthTabs } from "@/components/auth-tabs";
 import { PhoneIcon } from "@/components/icons";
 
@@ -11,9 +13,11 @@ export default async function LoginPage() {
     redirect("/");
   }
 
-  const logoSetting = await prisma.setting.findUnique({
-    where: { key: "appLogo" },
-  });
+  const [logoSetting] = await db
+    .select()
+    .from(settings)
+    .where(eq(settings.key, "appLogo"))
+    .limit(1);
   const logo = logoSetting?.value ?? null;
 
   return (

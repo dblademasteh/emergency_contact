@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { settings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
 const HOME_CONTENT_LINKS_KEY = "homeContentLinks";
@@ -34,9 +36,11 @@ function parseLinks(value: string | null): HomeContentLink[] {
 }
 
 export async function GET() {
-  const setting = await prisma.setting.findUnique({
-    where: { key: HOME_CONTENT_LINKS_KEY },
-  });
+  const [setting] = await db
+    .select()
+    .from(settings)
+    .where(eq(settings.key, HOME_CONTENT_LINKS_KEY))
+    .limit(1);
   return NextResponse.json({ links: parseLinks(setting?.value ?? null) });
 }
 
@@ -96,10 +100,10 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  await prisma.setting.upsert({
-    where: { key: HOME_CONTENT_LINKS_KEY },
-    update: { value: JSON.stringify(links) },
-    create: { key: HOME_CONTENT_LINKS_KEY, value: JSON.stringify(links) },
-  });
+  const json = JSON.stringify(links);
+  await db
+    .insert(settings)
+    .values({ key: HOME_CONTENT_LINKS_KEY, value: json })
+    .onConflictDoUpdate({ target: settings.key, set: { value: json } });
   return NextResponse.json({ links });
 }

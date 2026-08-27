@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { contacts, contactTypes, groups } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
 
 type Row = {
@@ -127,7 +129,7 @@ export async function POST(request: NextRequest) {
   }
 
   const validTypes = new Set(
-    (await prisma.contactType.findMany({ select: { value: true } })).map((t) => t.value)
+    (await db.select({ value: contactTypes.value }).from(contactTypes)).map((t) => t.value)
   );
 
   const created: { id: string; name: string }[] = [];
@@ -149,7 +151,11 @@ export async function POST(request: NextRequest) {
     let type = row.type || defaultType || "OTHER";
 
     if (row.groupId) {
-      const group = await prisma.group.findUnique({ where: { id: row.groupId } });
+      const [group] = await db
+        .select()
+        .from(groups)
+        .where(eq(groups.id, row.groupId))
+        .limit(1);
       if (group) {
         type = group.type;
       } else {
@@ -157,7 +163,11 @@ export async function POST(request: NextRequest) {
         continue;
       }
     } else if (defaultGroupId) {
-      const group = await prisma.group.findUnique({ where: { id: defaultGroupId } });
+      const [group] = await db
+        .select()
+        .from(groups)
+        .where(eq(groups.id, defaultGroupId))
+        .limit(1);
       if (group) {
         type = group.type;
       }
@@ -168,8 +178,9 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const contact = await prisma.contact.create({
-        data: {
+      const [contact] = await db
+        .insert(contacts)
+        .values({
           name: row.name,
           phone: row.phone,
           type,
@@ -180,8 +191,8 @@ export async function POST(request: NextRequest) {
           isPrimary: row.isPrimary ?? false,
           groupId: row.groupId || defaultGroupId || null,
           sortOrder: i,
-        },
-      });
+        })
+        .returning();
       created.push({ id: contact.id, name: contact.name });
     } catch {
       errors.push({ row: rowNum, error: "Failed to create contact." });

@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { settings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
 const SETTING_KEY = "bfpSiteUrl";
 
 export async function GET() {
-  const setting = await prisma.setting.findUnique({
-    where: { key: SETTING_KEY },
-  });
+  const [setting] = await db
+    .select()
+    .from(settings)
+    .where(eq(settings.key, SETTING_KEY))
+    .limit(1);
   return NextResponse.json({ url: setting?.value ?? null });
 }
 
@@ -26,7 +30,7 @@ export async function POST(request: NextRequest) {
       : undefined;
 
   if (url === null || url === undefined || url === "") {
-    await prisma.setting.deleteMany({ where: { key: SETTING_KEY } });
+    await db.delete(settings).where(eq(settings.key, SETTING_KEY));
     return NextResponse.json({ url: null });
   }
 
@@ -39,10 +43,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "URL is too long." }, { status: 400 });
   }
 
-  await prisma.setting.upsert({
-    where: { key: SETTING_KEY },
-    update: { value: trimmed },
-    create: { key: SETTING_KEY, value: trimmed },
-  });
+  await db
+    .insert(settings)
+    .values({ key: SETTING_KEY, value: trimmed })
+    .onConflictDoUpdate({ target: settings.key, set: { value: trimmed } });
   return NextResponse.json({ url: trimmed });
 }

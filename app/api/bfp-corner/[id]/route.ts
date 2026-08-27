@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { bfpCornerEntries } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -15,7 +17,11 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
   if (!isAdminToken(request.cookies.get(SESSION_COOKIE)?.value)) return unauthorized();
 
   const { id } = await ctx.params;
-  const existing = await prisma.bfpCornerEntry.findUnique({ where: { id } });
+  const [existing] = await db
+    .select()
+    .from(bfpCornerEntries)
+    .where(eq(bfpCornerEntries.id, id))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Entry not found." }, { status: 404 });
   }
@@ -30,7 +36,11 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
   if (typeof body.youtubeUrl === "string") data.youtubeUrl = body.youtubeUrl.trim();
   if (typeof body.sortOrder === "number") data.sortOrder = body.sortOrder;
 
-  const entry = await prisma.bfpCornerEntry.update({ where: { id }, data });
+  const [entry] = await db
+    .update(bfpCornerEntries)
+    .set(data)
+    .where(eq(bfpCornerEntries.id, id))
+    .returning();
   return NextResponse.json(entry);
 }
 
@@ -38,11 +48,15 @@ export async function DELETE(_request: NextRequest, ctx: Ctx) {
   if (!isAdminToken(_request.cookies.get(SESSION_COOKIE)?.value)) return unauthorized();
 
   const { id } = await ctx.params;
-  const existing = await prisma.bfpCornerEntry.findUnique({ where: { id } });
+  const [existing] = await db
+    .select()
+    .from(bfpCornerEntries)
+    .where(eq(bfpCornerEntries.id, id))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Entry not found." }, { status: 404 });
   }
 
-  await prisma.bfpCornerEntry.delete({ where: { id } });
+  await db.delete(bfpCornerEntries).where(eq(bfpCornerEntries.id, id));
   return NextResponse.json({ ok: true });
 }

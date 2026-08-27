@@ -1,5 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { admins, users } from "@/db/schema";
+import { eq, ilike } from "drizzle-orm";
 import { verifyPassword } from "@/lib/passwords";
 
 export const SESSION_COOKIE = "ec_admin_session";
@@ -104,7 +106,11 @@ export async function verifyAdminCredentials(
   password: string
 ) {
   if (!username || !password) return null;
-  const admin = await prisma.admin.findUnique({ where: { username } });
+  const [admin] = await db
+    .select()
+    .from(admins)
+    .where(eq(admins.username, username))
+    .limit(1);
   if (!admin) return null;
   if (!verifyPassword(password, admin.passwordHash)) return null;
   return admin;
@@ -112,9 +118,11 @@ export async function verifyAdminCredentials(
 
 export async function verifyUserCredentials(unitCode: string, password: string) {
   if (!unitCode || !password) return null;
-  const user = await prisma.user.findFirst({
-    where: { unitCode: { equals: unitCode, mode: "insensitive" } },
-  });
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(ilike(users.unitCode, unitCode))
+    .limit(1);
   if (!user) return null;
   if (!verifyPassword(password, user.passwordHash)) return null;
   return user;

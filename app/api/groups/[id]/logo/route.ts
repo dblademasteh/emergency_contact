@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { groups } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -16,7 +18,11 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   }
 
   const { id } = await ctx.params;
-  const existing = await prisma.group.findUnique({ where: { id } });
+  const [existing] = await db
+    .select()
+    .from(groups)
+    .where(eq(groups.id, id))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Group not found." }, { status: 404 });
   }
@@ -25,7 +31,11 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   const logo = body && typeof body === "object" ? (body as { logo?: unknown }).logo : undefined;
 
   if (logo === null || logo === "") {
-    await prisma.group.update({ where: { id }, data: { logoUrl: null } });
+    const [updated] = await db
+      .update(groups)
+      .set({ logoUrl: null })
+      .where(eq(groups.id, id))
+      .returning();
     return NextResponse.json({ ok: true, logoUrl: null });
   }
 
@@ -48,6 +58,10 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     );
   }
 
-  await prisma.group.update({ where: { id }, data: { logoUrl: logo } });
-  return NextResponse.json({ ok: true, logoUrl: logo });
+  const [updated] = await db
+    .update(groups)
+    .set({ logoUrl: logo })
+    .where(eq(groups.id, id))
+    .returning();
+  return NextResponse.json({ ok: true, logoUrl: updated.logoUrl });
 }

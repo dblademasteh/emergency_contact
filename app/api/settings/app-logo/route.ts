@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { settings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
 const APP_LOGO_KEY = "appLogo";
@@ -7,9 +9,11 @@ const MAX_LOGO_LENGTH = 20_000_000;
 const IMAGE_PATTERN = /^data:image\/(png|jpeg|webp|gif);base64,/;
 
 export async function GET() {
-  const setting = await prisma.setting.findUnique({
-    where: { key: APP_LOGO_KEY },
-  });
+  const [setting] = await db
+    .select()
+    .from(settings)
+    .where(eq(settings.key, APP_LOGO_KEY))
+    .limit(1);
   return NextResponse.json({ logo: setting?.value ?? null });
 }
 
@@ -28,7 +32,7 @@ export async function POST(request: NextRequest) {
       : undefined;
 
   if (logo === null || logo === "") {
-    await prisma.setting.deleteMany({ where: { key: APP_LOGO_KEY } });
+    await db.delete(settings).where(eq(settings.key, APP_LOGO_KEY));
     return NextResponse.json({ logo: null });
   }
 
@@ -48,10 +52,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  await prisma.setting.upsert({
-    where: { key: APP_LOGO_KEY },
-    update: { value: logo },
-    create: { key: APP_LOGO_KEY, value: logo },
-  });
+  await db
+    .insert(settings)
+    .values({ key: APP_LOGO_KEY, value: logo })
+    .onConflictDoUpdate({ target: settings.key, set: { value: logo } });
   return NextResponse.json({ logo });
 }

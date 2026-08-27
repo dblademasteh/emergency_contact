@@ -9,35 +9,34 @@
     "lint": "eslint",
     "db:up": "docker compose -f compose.local.yaml up -d",
     "db:down": "docker compose -f compose.local.yaml down",
-    "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
-    "db:studio": "prisma studio",
-    "db:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:reset": "drizzle-kit migrate --force"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.9.1",
-    "@prisma/client": "^7.9.1",
+    "@paralleldrive/cuid2": "^3.3.0",
     "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.28.0",
     "next": "16.3.0",
+    "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
-    "prisma": "^7.9.1",
     "sharp": "^0.35.3",
     "tailwindcss": "^4",
-    "tsx": "^4.23.6",
+    "tsx": "^4.23.12",
     "typescript": "^5"
   }
 }

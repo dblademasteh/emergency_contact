@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { suggestions } from "@/db/schema";
+import { desc } from "drizzle-orm";
 import {
   AdminSuggestions,
   type SuggestionItem,
@@ -18,10 +20,11 @@ export default async function AdminSuggestionsPage() {
     redirect("/");
   }
 
-  const suggestions = await prisma.suggestion.findMany({
-    orderBy: { createdAt: "desc" },
-  });
-  const items: SuggestionItem[] = suggestions.map((s) => ({
+  const rows = await db
+    .select()
+    .from(suggestions)
+    .orderBy(desc(suggestions.createdAt));
+  const items: SuggestionItem[] = rows.map((s) => ({
     id: s.id,
     message: s.message,
     office: s.office,

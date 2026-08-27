@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { faqItems } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { parseFaqInput } from "@/lib/faq";
 import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
@@ -21,19 +23,24 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
   }
 
   const { question, answer, sortOrder } = parsed.data;
-  const existing = await prisma.faqItem.findUnique({ where: { id } });
+  const [existing] = await db
+    .select()
+    .from(faqItems)
+    .where(eq(faqItems.id, id))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "FAQ entry not found." }, { status: 404 });
   }
 
-  const item = await prisma.faqItem.update({
-    where: { id },
-    data: {
+  const [item] = await db
+    .update(faqItems)
+    .set({
       question,
       answer,
       ...(sortOrder != null ? { sortOrder } : {}),
-    },
-  });
+    })
+    .where(eq(faqItems.id, id))
+    .returning();
 
   return NextResponse.json(item);
 }
@@ -47,11 +54,15 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
   }
 
   const { id } = await ctx.params;
-  const existing = await prisma.faqItem.findUnique({ where: { id } });
+  const [existing] = await db
+    .select()
+    .from(faqItems)
+    .where(eq(faqItems.id, id))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "FAQ entry not found." }, { status: 404 });
   }
 
-  await prisma.faqItem.delete({ where: { id } });
+  await db.delete(faqItems).where(eq(faqItems.id, id));
   return NextResponse.json({ ok: true });
 }

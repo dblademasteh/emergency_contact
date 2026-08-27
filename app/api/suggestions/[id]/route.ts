@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { suggestions } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -13,7 +15,11 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
   }
 
   const { id } = await ctx.params;
-  const existing = await prisma.suggestion.findUnique({ where: { id } });
+  const [existing] = await db
+    .select()
+    .from(suggestions)
+    .where(eq(suggestions.id, id))
+    .limit(1);
   if (!existing) {
     return NextResponse.json(
       { error: "Suggestion not found." },
@@ -21,6 +27,6 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
     );
   }
 
-  await prisma.suggestion.delete({ where: { id } });
+  await db.delete(suggestions).where(eq(suggestions.id, id));
   return NextResponse.json({ ok: true });
 }

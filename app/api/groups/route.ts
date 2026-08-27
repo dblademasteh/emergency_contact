@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { groups, contactTypes } from "@/db/schema";
+import { asc, eq } from "drizzle-orm";
 import { parseGroupInput } from "@/lib/groups";
 import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   const type = request.nextUrl.searchParams.get("type") ?? "";
-  const groups = await prisma.group.findMany({
-    where: type ? { type } : {},
-    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-  });
-  return NextResponse.json(groups);
+  const rows = await db
+    .select()
+    .from(groups)
+    .where(type ? eq(groups.type, type) : undefined)
+    .orderBy(asc(groups.sortOrder), asc(groups.name));
+  return NextResponse.json(rows);
 }
 
 export async function POST(request: NextRequest) {
@@ -28,9 +31,11 @@ export async function POST(request: NextRequest) {
 
   const { data } = parsed;
   if (data.parentId) {
-    const parent = await prisma.group.findUnique({
-      where: { id: data.parentId },
-    });
+    const [parent] = await db
+      .select()
+      .from(groups)
+      .where(eq(groups.id, data.parentId))
+      .limit(1);
     if (!parent) {
       return NextResponse.json(
         { error: "Parent group not found." },
@@ -39,9 +44,11 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const typeInfo = await prisma.contactType.findUnique({
-    where: { value: data.type },
-  });
+  const [typeInfo] = await db
+    .select()
+    .from(contactTypes)
+    .where(eq(contactTypes.value, data.type))
+    .limit(1);
   if (!typeInfo) {
     return NextResponse.json(
       { error: "Category not found." },
@@ -49,13 +56,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const group = await prisma.group.create({
-    data: {
+  const [group] = await db
+    .insert(groups)
+    .values({
       name: data.name,
       type: data.type,
       parentId: data.parentId,
-    },
-  });
+    })
+    .returning();
 
   return NextResponse.json(group, { status: 201 });
 }

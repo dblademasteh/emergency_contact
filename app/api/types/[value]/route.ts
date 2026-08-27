@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { contactTypes, contacts, groups } from "@/db/schema";
+import { asc, eq } from "drizzle-orm";
 import { parseContactTypeInput } from "@/lib/contact-types";
 import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
@@ -26,21 +28,26 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  const existing = await prisma.contactType.findUnique({ where: { value } });
+  const [existing] = await db
+    .select()
+    .from(contactTypes)
+    .where(eq(contactTypes.value, value))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Category not found." }, { status: 404 });
   }
 
   const { data } = parsed;
-  const type = await prisma.contactType.update({
-    where: { value },
-    data: {
+  const [type] = await db
+    .update(contactTypes)
+    .set({
       label: data.label,
       color: data.color,
       icon: data.icon,
       sortOrder: data.sortOrder ?? existing.sortOrder,
-    },
-  });
+    })
+    .where(eq(contactTypes.value, value))
+    .returning();
 
   return NextResponse.json(type);
 }
@@ -49,14 +56,19 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
   if (!isAdmin(request)) return unauthorized();
 
   const { value } = await ctx.params;
-  const existing = await prisma.contactType.findUnique({ where: { value } });
+  const [existing] = await db
+    .select()
+    .from(contactTypes)
+    .where(eq(contactTypes.value, value))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Category not found." }, { status: 404 });
   }
 
-  const all = await prisma.contactType.findMany({
-    orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
-  });
+  const all = await db
+    .select()
+    .from(contactTypes)
+    .orderBy(asc(contactTypes.sortOrder), asc(contactTypes.label));
   if (all.length <= 1) {
     return NextResponse.json(
       { error: "Cannot delete the last remaining category." },
@@ -68,17 +80,17 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
     all.find((t) => t.value === "OTHER" && t.value !== value) ??
     all.find((t) => t.value !== value)!;
 
-  await prisma.$transaction([
-    prisma.contact.updateMany({
-      where: { type: value },
-      data: { type: fallback.value },
-    }),
-    prisma.group.updateMany({
-      where: { type: value },
-      data: { type: fallback.value },
-    }),
-    prisma.contactType.delete({ where: { value } }),
-  ]);
+  await db.transaction(async (tx) => {
+    await tx
+      .update(contacts)
+      .set({ type: fallback.value })
+      .where(eq(contacts.type, value));
+    await tx
+      .update(groups)
+      .set({ type: fallback.value })
+      .where(eq(groups.type, value));
+    await tx.delete(contactTypes).where(eq(contactTypes.value, value));
+  });
 
   return NextResponse.json({ ok: true });
 }

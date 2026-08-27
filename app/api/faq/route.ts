@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { faqItems } from "@/db/schema";
+import { asc, count } from "drizzle-orm";
 import { parseFaqInput } from "@/lib/faq";
 import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
 export async function GET() {
-  const items = await prisma.faqItem.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-  });
+  const items = await db
+    .select()
+    .from(faqItems)
+    .orderBy(asc(faqItems.sortOrder), asc(faqItems.createdAt));
   return NextResponse.json({ items });
 }
 
@@ -25,14 +28,17 @@ export async function POST(request: NextRequest) {
   }
 
   const { question, answer, sortOrder } = parsed.data;
-  const count = await prisma.faqItem.count();
-  const item = await prisma.faqItem.create({
-    data: {
+  const [{ value: existingCount }] = await db
+    .select({ value: count() })
+    .from(faqItems);
+  const [item] = await db
+    .insert(faqItems)
+    .values({
       question,
       answer,
-      sortOrder: sortOrder ?? count,
-    },
-  });
+      sortOrder: sortOrder ?? existingCount,
+    })
+    .returning();
 
   return NextResponse.json(item, { status: 201 });
 }

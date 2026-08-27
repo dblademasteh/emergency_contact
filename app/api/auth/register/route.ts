@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { hashPassword } from "@/lib/passwords";
 import {
   SESSION_COOKIE,
@@ -46,7 +48,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const existing = await prisma.user.findUnique({ where: { unitCode } });
+  const [existing] = await db
+    .select()
+    .from(users)
+    .where(eq(users.unitCode, unitCode))
+    .limit(1);
   if (existing) {
     return NextResponse.json(
       { error: "That unit code is already registered." },
@@ -54,9 +60,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const user = await prisma.user.create({
-    data: { office, unitCode, passwordHash: hashPassword(password) },
-  });
+  const [user] = await db
+    .insert(users)
+    .values({ office, unitCode, passwordHash: hashPassword(password) })
+    .returning();
 
   // Auto sign-in after creating the account.
   const cookieStore = await cookies();

@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { bfpCornerEntries } from "@/db/schema";
+import { asc, eq, max } from "drizzle-orm";
 import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
 export async function GET() {
-  const entries = await prisma.bfpCornerEntry.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-  });
+  const entries = await db
+    .select()
+    .from(bfpCornerEntries)
+    .orderBy(asc(bfpCornerEntries.sortOrder), asc(bfpCornerEntries.createdAt));
   return NextResponse.json(entries);
 }
 
@@ -32,15 +35,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "YouTube URL is required." }, { status: 400 });
   }
 
-  const maxSort = await prisma.bfpCornerEntry.aggregate({ _max: { sortOrder: true } });
+  const [maxRow] = await db
+    .select({ value: max(bfpCornerEntries.sortOrder) })
+    .from(bfpCornerEntries);
+  const nextSort = (maxRow?.value ?? 0) + 1;
 
-  const entry = await prisma.bfpCornerEntry.create({
-    data: {
-      title,
-      youtubeUrl,
-      sortOrder: (maxSort._max.sortOrder ?? 0) + 1,
-    },
-  });
+  const [entry] = await db
+    .insert(bfpCornerEntries)
+    .values({ title, youtubeUrl, sortOrder: nextSort })
+    .returning();
 
   return NextResponse.json(entry, { status: 201 });
 }

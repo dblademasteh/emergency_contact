@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { groups, contactTypes } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { parseGroupInput } from "@/lib/groups";
 import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
 
@@ -36,16 +38,22 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  const existing = await prisma.group.findUnique({ where: { id } });
+  const [existing] = await db
+    .select()
+    .from(groups)
+    .where(eq(groups.id, id))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Group not found." }, { status: 404 });
   }
 
   const { data } = parsed;
   if (data.parentId && data.parentId !== existing.parentId) {
-    const parent = await prisma.group.findUnique({
-      where: { id: data.parentId },
-    });
+    const [parent] = await db
+      .select()
+      .from(groups)
+      .where(eq(groups.id, data.parentId))
+      .limit(1);
     if (!parent) {
       return NextResponse.json(
         { error: "Parent group not found." },
@@ -53,7 +61,7 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
       );
     }
 
-    const all = await prisma.group.findMany({ select: { id: true, parentId: true } });
+    const all = await db.select({ id: groups.id, parentId: groups.parentId }).from(groups);
     const parentById = new Map(all.map((g) => [g.id, g.parentId]));
     if (isDescendant(data.parentId, id, parentById)) {
       return NextResponse.json(
@@ -63,9 +71,11 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     }
   }
 
-  const typeInfo = await prisma.contactType.findUnique({
-    where: { value: data.type },
-  });
+  const [typeInfo] = await db
+    .select()
+    .from(contactTypes)
+    .where(eq(contactTypes.value, data.type))
+    .limit(1);
   if (!typeInfo) {
     return NextResponse.json(
       { error: "Category not found." },
@@ -73,14 +83,15 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     );
   }
 
-  const group = await prisma.group.update({
-    where: { id },
-    data: {
+  const [group] = await db
+    .update(groups)
+    .set({
       name: data.name,
       type: data.type,
       parentId: data.parentId,
-    },
-  });
+    })
+    .where(eq(groups.id, id))
+    .returning();
 
   return NextResponse.json(group);
 }
@@ -89,11 +100,15 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
   if (!isEditor(request)) return unauthorized();
 
   const { id } = await ctx.params;
-  const existing = await prisma.group.findUnique({ where: { id } });
+  const [existing] = await db
+    .select()
+    .from(groups)
+    .where(eq(groups.id, id))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Group not found." }, { status: 404 });
   }
 
-  await prisma.group.delete({ where: { id } });
+  await db.delete(groups).where(eq(groups.id, id));
   return NextResponse.json({ ok: true });
 }

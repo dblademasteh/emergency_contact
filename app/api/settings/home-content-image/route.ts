@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { settings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
 
 const HOME_CONTENT_IMAGE_KEY = "homeContentImage";
@@ -7,9 +9,11 @@ const MAX_IMAGE_LENGTH = 20_000_000;
 const IMAGE_PATTERN = /^data:image\/(png|jpeg|webp|gif);base64,/;
 
 export async function GET() {
-  const setting = await prisma.setting.findUnique({
-    where: { key: HOME_CONTENT_IMAGE_KEY },
-  });
+  const [setting] = await db
+    .select()
+    .from(settings)
+    .where(eq(settings.key, HOME_CONTENT_IMAGE_KEY))
+    .limit(1);
   return NextResponse.json({ image: setting?.value ?? null });
 }
 
@@ -28,9 +32,7 @@ export async function POST(request: NextRequest) {
       : undefined;
 
   if (image === null || image === "") {
-    await prisma.setting.deleteMany({
-      where: { key: HOME_CONTENT_IMAGE_KEY },
-    });
+    await db.delete(settings).where(eq(settings.key, HOME_CONTENT_IMAGE_KEY));
     return NextResponse.json({ image: null });
   }
 
@@ -50,10 +52,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  await prisma.setting.upsert({
-    where: { key: HOME_CONTENT_IMAGE_KEY },
-    update: { value: image },
-    create: { key: HOME_CONTENT_IMAGE_KEY, value: image },
-  });
+  await db
+    .insert(settings)
+    .values({ key: HOME_CONTENT_IMAGE_KEY, value: image })
+    .onConflictDoUpdate({ target: settings.key, set: { value: image } });
   return NextResponse.json({ image });
 }

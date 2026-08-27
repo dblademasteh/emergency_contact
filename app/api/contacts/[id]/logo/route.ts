@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { contacts } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -16,7 +18,11 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   }
 
   const { id } = await ctx.params;
-  const existing = await prisma.contact.findUnique({ where: { id } });
+  const [existing] = await db
+    .select()
+    .from(contacts)
+    .where(eq(contacts.id, id))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Contact not found." }, { status: 404 });
   }
@@ -28,7 +34,11 @@ export async function POST(request: NextRequest, ctx: Ctx) {
       : undefined;
 
   if (logo === null || logo === "") {
-    await prisma.contact.update({ where: { id }, data: { logoUrl: null } });
+    const [updated] = await db
+      .update(contacts)
+      .set({ logoUrl: null })
+      .where(eq(contacts.id, id))
+      .returning();
     return NextResponse.json({ ok: true, logoUrl: null });
   }
 
@@ -48,6 +58,10 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     );
   }
 
-  await prisma.contact.update({ where: { id }, data: { logoUrl: logo } });
-  return NextResponse.json({ ok: true, logoUrl: logo });
+  const [updated] = await db
+    .update(contacts)
+    .set({ logoUrl: logo })
+    .where(eq(contacts.id, id))
+    .returning();
+  return NextResponse.json({ ok: true, logoUrl: updated.logoUrl });
 }

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { contacts, groups, contactTypes } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { parseContactInput } from "@/lib/contacts";
 import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
 
@@ -24,16 +26,22 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
   }
 
   const { data } = parsed;
-  const existing = await prisma.contact.findUnique({ where: { id } });
+  const [existing] = await db
+    .select()
+    .from(contacts)
+    .where(eq(contacts.id, id))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Contact not found." }, { status: 404 });
   }
 
   let type = data.type;
   if (data.groupId) {
-    const group = await prisma.group.findUnique({
-      where: { id: data.groupId },
-    });
+    const [group] = await db
+      .select()
+      .from(groups)
+      .where(eq(groups.id, data.groupId))
+      .limit(1);
     if (!group) {
       return NextResponse.json(
         { error: "Group not found." },
@@ -42,9 +50,11 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     }
     type = group.type;
   } else {
-    const typeInfo = await prisma.contactType.findUnique({
-      where: { value: data.type },
-    });
+    const [typeInfo] = await db
+      .select()
+      .from(contactTypes)
+      .where(eq(contactTypes.value, data.type))
+      .limit(1);
     if (!typeInfo) {
       return NextResponse.json(
         { error: "Category not found." },
@@ -53,9 +63,9 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     }
   }
 
-  const contact = await prisma.contact.update({
-    where: { id },
-    data: {
+  const [contact] = await db
+    .update(contacts)
+    .set({
       name: data.name,
       phone: data.phone,
       type,
@@ -65,8 +75,9 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
       facebookUrl: data.facebookUrl,
       isPrimary: data.isPrimary ?? false,
       groupId: data.groupId,
-    },
-  });
+    })
+    .where(eq(contacts.id, id))
+    .returning();
 
   return NextResponse.json(contact);
 }
@@ -76,11 +87,15 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
 
   const { id } = await ctx.params;
 
-  const existing = await prisma.contact.findUnique({ where: { id } });
+  const [existing] = await db
+    .select()
+    .from(contacts)
+    .where(eq(contacts.id, id))
+    .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Contact not found." }, { status: 404 });
   }
 
-  await prisma.contact.delete({ where: { id } });
+  await db.delete(contacts).where(eq(contacts.id, id));
   return NextResponse.json({ ok: true });
 }
