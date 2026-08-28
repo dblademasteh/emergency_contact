@@ -184,7 +184,7 @@ just run `docker compose up -d`.
 | `Host key verification failed` | First-time GitHub host key | Use `ssh -o StrictHostKeyChecking=accept-new -T git@github.com` once |
 | `docker: permission denied` | User not in `docker` group | Run with `sudo`, or add user: `sudo synogroup --add docker $USER` |
 | `Database is uninitialized and superuser password is not specified` | Empty `POSTGRES_PASSWORD` | Set a non-empty password in `.env`, then `docker compose down -v` (wipes DB) and `up -d --build` |
-| Can't sign in as admin after fresh DB | Admin accounts come from `prisma/seed.ts` (random passwords), not auto-run | Run `npx prisma db seed` on the NAS, or add admins manually |
+| Can't sign in as admin after fresh DB | Admin accounts come from `scripts/seed.ts` (random passwords), not auto-run | Run `docker compose exec app npx tsx scripts/seed.ts` on the NAS, then `docker compose exec app npx tsx scripts/reset-admin.ts` to set `admin1`'s password to `admin123` |
 | Cloudflare URL not loading | `cloudflared` down / token expired | `docker compose up -d cloudflared`; refresh `CLOUDFLARED_TOKEN` in `.env` if `token has expired` |
 | Port 18081 already in use | Old container from File Station method | `docker compose down` first, or change the host port in `docker-compose.yml` || `failed to receive status: rpc error: code = Unavailable ... EOF` during build | Long build on slow NAS; SSH/daemon connection dropped | Run the build detached so it survives disconnects: `nohup docker compose up -d --build > build.log 2>&1 &` then `tail -f build.log` |
 | Build stops / dies when you press `Ctrl+C` | Ctrl+C kills the running build | Don't press Ctrl+C mid-build; let it finish (or use the `nohup` method above) |

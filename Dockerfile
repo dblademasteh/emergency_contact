@@ -44,6 +44,9 @@ COPY --from=builder /app/lib ./lib
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
+# Seed + admin scripts (Drizzle-based) so they can run inside the container
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/scripts ./scripts
 
 USER nextjs
 EXPOSE 3000
