@@ -30,8 +30,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      # Build on the custom network too (default bridge is broken on this NAS)
-      network: emergency-network
     container_name: emergency-contacts
     restart: unless-stopped
     networks:
