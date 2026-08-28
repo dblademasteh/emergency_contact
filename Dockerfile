@@ -41,9 +41,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/db ./db
 COPY --from=builder /app/lib ./lib
-COPY --from=builder --chown=nextjs:nodejs drizzle.config.ts ./drizzle.config.ts
-COPY --from=builder --chown=nextjs:nodejs drizzle ./drizzle
-COPY --from=builder --chown=nextjs:nodejs tsconfig.json ./tsconfig.json
+COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
+COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 
 USER nextjs
 EXPOSE 3000
