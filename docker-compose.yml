@@ -2,10 +2,12 @@ name: emergency-contacts-prod
 
 # Use a dedicated custom network instead of the default bridge, which is
 # missing/broken on this NAS. This avoids disrupting other apps (e.g. fsis).
+# The network is created manually (docker network create emergency-network),
+# so it's marked external to tell Compose not to manage its labels.
 networks:
   emergency-net:
     name: emergency-network
-    driver: bridge
+    external: true
 
 services:
   db:
