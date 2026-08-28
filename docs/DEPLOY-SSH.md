@@ -186,8 +186,11 @@ just run `docker compose up -d`.
 | `Database is uninitialized and superuser password is not specified` | Empty `POSTGRES_PASSWORD` | Set a non-empty password in `.env`, then `docker compose down -v` (wipes DB) and `up -d --build` |
 | Can't sign in as admin after fresh DB | Admin accounts come from `prisma/seed.ts` (random passwords), not auto-run | Run `npx prisma db seed` on the NAS, or add admins manually |
 | Cloudflare URL not loading | `cloudflared` down / token expired | `docker compose up -d cloudflared`; refresh `CLOUDFLARED_TOKEN` in `.env` if `token has expired` |
-| Port 18081 already in use | Old container from File Station method | `docker compose down` first, or change the host port in `docker-compose.yml` |
-
+| Port 18081 already in use | Old container from File Station method | `docker compose down` first, or change the host port in `docker-compose.yml` || `failed to receive status: rpc error: code = Unavailable ... EOF` during build | Long build on slow NAS; SSH/daemon connection dropped | Run the build detached so it survives disconnects: `nohup docker compose up -d --build > build.log 2>&1 &` then `tail -f build.log` |
+| Build stops / dies when you press `Ctrl+C` | Ctrl+C kills the running build | Don't press Ctrl+C mid-build; let it finish (or use the `nohup` method above) |
+| `COPY failed: ... not found` for `drizzle.config.ts` / `tsconfig.json` | Relative `COPY --from` paths resolve wrong in the runner stage | Use absolute paths in the Dockerfile: `COPY --from=builder /app/drizzle.config.ts ./` etc. |
+| App crash-loops; migrations hang on `[⣷]` spinner | `#` / `!` / `@` in `POSTGRES_PASSWORD` break the `DATABASE_URL` in `docker-compose.yml` | Use a simple alphanumeric password (e.g. `emergency2026`), then `docker compose down -v` (wipes DB) and `up -d --build` |
+| `502 Bad Gateway` on the public URL | App was crash-looping (see above) | Fix the DB password issue; once the app serves, the tunnel recovers on its own |
 ---
 
 ## 📌 Quick reference
