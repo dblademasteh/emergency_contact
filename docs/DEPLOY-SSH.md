@@ -156,6 +156,26 @@ That's it — migrations run automatically on container start.
 
 ---
 
+## ♻️ Restart & recovery
+
+All services use `restart: unless-stopped`, so containers **auto-restart on crash**
+and **auto-start after a NAS reboot** (no action needed).
+
+Manual commands if ever needed:
+
+```bash
+cd /volume1/docker/emergency_contact
+docker compose restart        # restart all
+docker compose restart app    # restart just the app
+docker compose down           # stop everything
+docker compose up -d          # start everything again
+```
+
+After a NAS reboot, if containers don't come back (Docker wasn't running at boot),
+just run `docker compose up -d`.
+
+---
+
 ## 🩺 6 · Troubleshooting
 
 | Symptom | Cause | Fix |
