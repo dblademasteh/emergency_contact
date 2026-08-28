@@ -30,6 +30,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # Build using the host network (default bridge is broken on this NAS,
+      # and buildx isn't available to create a custom builder).
+      network: host
     container_name: emergency-contacts
     restart: unless-stopped
     networks:
