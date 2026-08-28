@@ -4,7 +4,7 @@
 > then building with Docker Compose — no more File Station tarball uploads.
 >
 > **Repo:** `github.com/dblademasteh/emergency_contact` (private, branch `main`)
-> **App (LAN):** `http://192.168.0.148:8081/` · **Cloudflare tunnel:** via `cloudflared`
+> **App (LAN):** `http://192.168.0.148:18081/` · **Cloudflare tunnel:** via `cloudflared`
 >
 > This runbook is **interactive** — paste each block into your NAS SSH terminal
 > and send me any error output.
@@ -166,7 +166,7 @@ That's it — migrations run automatically on container start.
 | `Database is uninitialized and superuser password is not specified` | Empty `POSTGRES_PASSWORD` | Set a non-empty password in `.env`, then `docker compose down -v` (wipes DB) and `up -d --build` |
 | Can't sign in as admin after fresh DB | Admin accounts come from `prisma/seed.ts` (random passwords), not auto-run | Run `npx prisma db seed` on the NAS, or add admins manually |
 | Cloudflare URL not loading | `cloudflared` down / token expired | `docker compose up -d cloudflared`; refresh `CLOUDFLARED_TOKEN` in `.env` if `token has expired` |
-| Port 8081 already in use | Old container from File Station method | `docker compose down` first, or change the host port in `docker-compose.yml` |
+| Port 18081 already in use | Old container from File Station method | `docker compose down` first, or change the host port in `docker-compose.yml` |
 
 ---
 
@@ -178,5 +178,5 @@ That's it — migrations run automatically on container start.
 | Update | `cd /volume1/docker/emergency_contact && git pull && docker compose up -d --build` |
 | Logs (app) | `docker compose logs -f app` |
 | Logs (tunnel) | `docker compose logs -f cloudflared` |
-| App (LAN) | `http://192.168.0.148:8081` |
+| App (LAN) | `http://192.168.0.148:18081` |
 | Source | `github.com/dblademasteh/emergency_contact` (branch `main`) |

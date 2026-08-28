@@ -31,7 +31,7 @@ services:
       SESSION_SECRET: ${SESSION_SECRET}
       NODE_ENV: production
     ports:
-      - "8081:3000"
+      - "18081:3000"
 
   # Exposes the app to the internet via a Cloudflare Tunnel (no port forwarding).
   # Uses a REMOTELY-MANAGED tunnel: a token (from the Zero Trust dashboard)
