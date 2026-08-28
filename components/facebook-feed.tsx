@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ImageIcon, XIcon, GlobeIcon, ShieldIcon, TrashIcon, EditIcon } from "@/components/icons";
+import {
+  ImageIcon,
+  XIcon,
+  GlobeIcon,
+  ShieldIcon,
+  TrashIcon,
+  EditIcon,
+  PlayIcon,
+  ExternalLinkIcon,
+  FacebookIcon,
+} from "@/components/icons";
 
 /* ── helpers ── */
 
@@ -212,10 +222,10 @@ export function FacebookFeed({
     <button
       type="button"
       onClick={() => setTab(id)}
-      className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
+      className={`flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold transition sm:text-sm ${
         tab === id
           ? "bg-slate-900 text-white shadow-md dark:bg-slate-100 dark:text-slate-900"
-          : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+          : "border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
       }`}
     >
       {icon}
@@ -224,28 +234,42 @@ export function FacebookFeed({
   );
 
   return (
-    <div className="mb-4">
+    <section className="mb-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      {/* ── Section header ── */}
+      <div className="flex items-center gap-2 border-b border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/40">
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-linear-to-br from-rose-500 to-red-600 text-white shadow-sm">
+          <ShieldIcon className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+            BFP Updates
+          </h2>
+          <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
+            Bureau of Fire Protection
+          </p>
+        </div>
+      </div>
+
       {/* ── Tab buttons ── */}
-      <div className="mb-3 flex gap-2">
-        {tabBtn("bfp-fb", <ImageIcon className="h-4 w-4" />, "BFP Facebook")}
-        {tabBtn("bfp-site", <GlobeIcon className="h-4 w-4" />, "BFP Site")}
-        {tabBtn("bfp-corner", <ShieldIcon className="h-4 w-4" />, "BFP Corner")}
+      <div className="flex gap-2 p-3">
+        {tabBtn("bfp-fb", <FacebookIcon className="h-4 w-4" />, "Facebook")}
+        {tabBtn("bfp-site", <GlobeIcon className="h-4 w-4" />, "Website")}
+        {tabBtn("bfp-corner", <PlayIcon className="h-4 w-4" />, "Videos")}
       </div>
 
       {/* ── Content area ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900">
-
+      <div className="px-3 pb-3">
         {/* ── BFP Site tab ── */}
         {tab === "bfp-site" && (
           <>
             {editingSite ? (
-              <div className="p-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
                 <p className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">BFP website URL</p>
                 <input
                   value={draftSite}
                   onChange={(e) => { setDraftSite(e.target.value); setError(null); }}
                   placeholder="https://bfp.gov.ph"
-                  className="mb-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500"
+                  className="mb-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500"
                 />
                 {error && <p className="mb-2 text-xs font-medium text-red-600">{error}</p>}
                 <div className="flex justify-end gap-2">
@@ -258,15 +282,27 @@ export function FacebookFeed({
                 href={bfpSiteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-[700px] w-full flex-col items-center justify-center gap-4 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200"
+                className="group flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:border-slate-600 dark:hover:bg-slate-800"
               >
-                <GlobeIcon className="h-12 w-12" />
-                <span className="text-sm font-semibold">{bfpSiteUrl}</span>
-                <span className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">Open site</span>
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-sky-500 to-blue-600 text-white shadow-md">
+                  <GlobeIcon className="h-6 w-6" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold text-slate-900 dark:text-slate-100">
+                    Official BFP Website
+                  </span>
+                  <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
+                    {bfpSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                  </span>
+                </span>
+                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-slate-900 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition group-hover:brightness-110 dark:bg-slate-100 dark:text-slate-900">
+                  Visit
+                  <ExternalLinkIcon className="h-3.5 w-3.5" />
+                </span>
               </a>
             ) : (
-              <button type="button" onClick={() => setEditingSite(true)} className="flex h-32 w-full flex-col items-center justify-center gap-2 text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800/60 dark:hover:text-slate-300">
-                <GlobeIcon className="h-8 w-8" />
+              <button type="button" onClick={() => setEditingSite(true)} className="flex h-28 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 text-slate-400 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-slate-700 dark:text-slate-500 dark:hover:border-slate-600 dark:hover:bg-slate-800/60 dark:hover:text-slate-300">
+                <GlobeIcon className="h-7 w-7" />
                 <span className="text-sm font-medium">Add BFP website</span>
               </button>
             )}
@@ -277,13 +313,13 @@ export function FacebookFeed({
         {tab === "bfp-fb" && (
           <>
             {editingFb ? (
-              <div className="p-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
                 <p className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">Facebook page</p>
                 <input
                   value={draftFb}
                   onChange={(e) => { setDraftFb(e.target.value); setError(null); }}
                   placeholder="facebook.com/yourpage"
-                  className="mb-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500"
+                  className="mb-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500"
                 />
                 {error && <p className="mb-2 text-xs font-medium text-red-600">{error}</p>}
                 <div className="flex justify-end gap-2">
@@ -292,7 +328,30 @@ export function FacebookFeed({
                 </div>
               </div>
             ) : pageUrl ? (
-              <div className="mx-auto w-full max-w-[540px]">
+              <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+                {/* Feed header bar */}
+                <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800/60">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1877F2] text-white shadow-sm">
+                    <FacebookIcon className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">
+                      BFP on Facebook
+                    </p>
+                    <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
+                      {pageUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+                    </p>
+                  </div>
+                  <a
+                    href={pageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#1877F2] px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:brightness-110"
+                  >
+                    Follow
+                    <ExternalLinkIcon className="h-3 w-3" />
+                  </a>
+                </div>
                 <iframe
                   key={pageUrl}
                   src={embedUrl(pageUrl)}
@@ -301,12 +360,12 @@ export function FacebookFeed({
                   frameBorder="0"
                   title="Facebook Feed"
                   allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                  className="h-[700px] w-full"
+                  className="h-[420px] w-full sm:h-[520px]"
                 />
               </div>
             ) : (
-              <button type="button" onClick={() => setEditingFb(true)} className="flex h-32 w-full flex-col items-center justify-center gap-2 text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800/60 dark:hover:text-slate-300">
-                <ImageIcon className="h-8 w-8" />
+              <button type="button" onClick={() => setEditingFb(true)} className="flex h-28 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 text-slate-400 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-slate-700 dark:text-slate-500 dark:hover:border-slate-600 dark:hover:bg-slate-800/60 dark:hover:text-slate-300">
+                <FacebookIcon className="h-7 w-7" />
                 <span className="text-sm font-medium">Add Facebook page feed</span>
               </button>
             )}
@@ -315,10 +374,10 @@ export function FacebookFeed({
 
         {/* ── BFP Corner tab ── */}
         {tab === "bfp-corner" && (
-          <div className="p-4">
+          <div>
             {/* Admin add / edit form */}
             {isAdmin && (
-              <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+              <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
                 <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
                   {cornerEditId ? "Edit entry" : "Add entry"}
                 </p>
@@ -357,7 +416,7 @@ export function FacebookFeed({
             ) : cornerEntries.length === 0 ? (
               <p className="py-8 text-center text-sm text-slate-400">No entries yet.</p>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {cornerEntries.map((entry) => {
                   const thumb = youtubeThumb(entry.youtubeUrl);
                   return (
@@ -366,8 +425,13 @@ export function FacebookFeed({
                       className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
                     >
                       {thumb ? (
-                        <a href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer">
+                        <a href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer" className="relative block">
                           <img src={thumb} alt={entry.title} className="h-40 w-full object-cover" />
+                          <span className="absolute inset-0 flex items-center justify-center bg-black/25 transition group-hover:bg-black/35">
+                            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-lg transition group-hover:scale-110">
+                              <PlayIcon className="ml-0.5 h-6 w-6" />
+                            </span>
+                          </span>
                         </a>
                       ) : (
                         <div className="flex h-40 w-full items-center justify-center bg-slate-100 dark:bg-slate-700">
@@ -379,7 +443,7 @@ export function FacebookFeed({
                           href={entry.youtubeUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm font-semibold text-slate-900 hover:underline dark:text-slate-100"
+                          className="line-clamp-2 text-sm font-semibold text-slate-900 hover:underline dark:text-slate-100"
                         >
                           {entry.title}
                         </a>
@@ -414,14 +478,14 @@ export function FacebookFeed({
 
         {/* ── Admin overlay buttons (site / fb only) ── */}
         {isAdmin && tab !== "bfp-corner" && (
-          <div className="absolute right-2 top-2 flex gap-2">
+          <div className="mt-2 flex justify-end gap-2">
             {tab === "bfp-site" && !editingSite && (
               <>
-                <button type="button" onClick={() => { setDraftSite(bfpSiteUrl ?? ""); setEditingSite(true); }} className="inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur transition hover:bg-black/70">
+                <button type="button" onClick={() => { setDraftSite(bfpSiteUrl ?? ""); setEditingSite(true); }} className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
                   <GlobeIcon className="h-3.5 w-3.5" />{bfpSiteUrl ? "Change" : "Add site"}
                 </button>
                 {bfpSiteUrl && (
-                  <button type="button" onClick={() => saveSite(null)} aria-label="Remove BFP site" className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition hover:bg-black/70">
+                  <button type="button" onClick={() => saveSite(null)} aria-label="Remove BFP site" className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 transition hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-red-600/10 dark:hover:text-red-400">
                     <XIcon className="h-4 w-4" />
                   </button>
                 )}
@@ -429,11 +493,11 @@ export function FacebookFeed({
             )}
             {tab === "bfp-fb" && !editingFb && (
               <>
-                <button type="button" onClick={() => { setDraftFb(pageUrl ?? ""); setEditingFb(true); }} className="inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur transition hover:bg-black/70">
-                  <ImageIcon className="h-3.5 w-3.5" />{pageUrl ? "Change" : "Add feed"}
+                <button type="button" onClick={() => { setDraftFb(pageUrl ?? ""); setEditingFb(true); }} className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                  <FacebookIcon className="h-3.5 w-3.5" />{pageUrl ? "Change" : "Add feed"}
                 </button>
                 {pageUrl && (
-                  <button type="button" onClick={() => saveFb(null)} aria-label="Remove Facebook feed" className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition hover:bg-black/70">
+                  <button type="button" onClick={() => saveFb(null)} aria-label="Remove Facebook feed" className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 transition hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-red-600/10 dark:hover:text-red-400">
                     <XIcon className="h-4 w-4" />
                   </button>
                 )}
@@ -442,6 +506,6 @@ export function FacebookFeed({
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

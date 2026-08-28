@@ -667,39 +667,6 @@ export default function Page() {
         />
       </div>
 
-      {searching && !loading && (
-        <>
-          {visibleContacts.length === 0 ? (
-            <div className="mb-6 rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
-              <p className="text-slate-500 dark:text-slate-400">No contacts match your search.</p>
-            </div>
-          ) : (
-            <ul className="mb-6 space-y-3">
-              {(showAllContacts ? visibleContacts : visibleContacts.slice(0, 3)).map((contact) => (
-                <li key={contact.id}>
-                  <ContactCard
-                    contact={contact}
-                    types={types}
-                    canEdit={isEditor}
-                    onEdit={openEdit}
-                    onDelete={handleDelete}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-          {visibleContacts.length > 3 && (
-            <button
-              type="button"
-              onClick={() => setShowAllContacts(!showAllContacts)}
-              className="mb-6 w-full rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              {showAllContacts ? "Show less" : `Show all ${visibleContacts.length} contacts`}
-            </button>
-          )}
-        </>
-      )}
-
       <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1">
         <button
           type="button"
@@ -738,6 +705,39 @@ export default function Page() {
           </button>
         )}
       </div>
+
+      {searching && !loading && (
+        <>
+          {visibleContacts.length === 0 ? (
+            <div className="mb-6 rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
+              <p className="text-slate-500 dark:text-slate-400">No contacts match your search.</p>
+            </div>
+          ) : (
+            <ul className="mb-6 space-y-3">
+              {(showAllContacts ? visibleContacts : visibleContacts.slice(0, 3)).map((contact) => (
+                <li key={contact.id}>
+                  <ContactCard
+                    contact={contact}
+                    types={types}
+                    canEdit={isEditor}
+                    onEdit={openEdit}
+                    onDelete={handleDelete}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+          {visibleContacts.length > 3 && (
+            <button
+              type="button"
+              onClick={() => setShowAllContacts(!showAllContacts)}
+              className="mb-6 w-full rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              {showAllContacts ? "Show less" : `Show all ${visibleContacts.length} contacts`}
+            </button>
+          )}
+        </>
+      )}
 
       {isAdmin && (
         <div className="mb-4 flex items-center gap-2">

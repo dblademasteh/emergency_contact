@@ -31,6 +31,7 @@ export function ContactCard({
   const label = typeInfo?.label ?? "Other";
   const href = `tel:${contact.phone.replace(/\s+/g, "")}`;
   const Icon = categoryIcon(typeInfo?.icon ?? "more");
+  const hasLocation = contact.latitude != null && contact.longitude != null;
 
   return (
     <article className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
@@ -63,9 +64,42 @@ export function ContactCard({
             {label}
           </span>
         </div>
-        <p className="mt-0.5 truncate text-sm font-medium text-slate-700 dark:text-slate-300">{contact.phone}</p>
+
+        <p className="mt-0.5 flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">
+          <PhoneIcon className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+          <span className="truncate">{contact.phone}</span>
+        </p>
+
         {contact.note && (
           <p className="mt-0.5 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">{contact.note}</p>
+        )}
+
+        {/* Secondary links: facebook + location as compact single-line chips */}
+        {(contact.facebookUrl || hasLocation) && (
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            {contact.facebookUrl && (
+              <a
+                href={contact.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex max-w-full items-center gap-1 rounded-full bg-[#1877F2]/10 px-2 py-0.5 text-xs font-medium text-[#1877F2] transition hover:bg-[#1877F2]/20 dark:bg-[#4a9bff]/10 dark:text-[#4a9bff] dark:hover:bg-[#4a9bff]/20"
+              >
+                <FacebookIcon className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Facebook</span>
+              </a>
+            )}
+            {hasLocation && (
+              <a
+                href={`https://www.google.com/maps?q=${contact.latitude},${contact.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex max-w-full items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 transition hover:bg-emerald-500/20 dark:bg-emerald-400/10 dark:text-emerald-400 dark:hover:bg-emerald-400/20"
+              >
+                <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Map</span>
+              </a>
+            )}
+          </div>
         )}
       </div>
 
@@ -77,28 +111,6 @@ export function ContactCard({
         >
           <PhoneIcon className="h-5 w-5" />
         </a>
-        {contact.facebookUrl && (
-          <a
-            href={contact.facebookUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Open ${contact.name} on Facebook`}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-sm transition hover:bg-[#145dbf]"
-          >
-            <FacebookIcon className="h-5 w-5" />
-          </a>
-        )}
-        {contact.latitude != null && contact.longitude != null && (
-          <a
-            href={`https://www.google.com/maps?q=${contact.latitude},${contact.longitude}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Open ${contact.name}'s location in maps`}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm transition hover:bg-emerald-700"
-          >
-            <MapPinIcon className="h-5 w-5" />
-          </a>
-        )}
         {canEdit && (
           <div className="flex flex-col gap-2">
             <button

@@ -124,7 +124,7 @@ export function GroupForm({
         role="dialog"
         aria-modal="true"
         aria-label={initial ? "Edit group" : "Add group"}
-        className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:max-w-md sm:rounded-3xl dark:bg-slate-900"
+        className="modal-scroll max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:max-w-md sm:rounded-3xl dark:bg-slate-900"
       >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">

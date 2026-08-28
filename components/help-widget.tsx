@@ -95,7 +95,7 @@ export function HelpWidget({ isAdmin }: Props) {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="modal-scroll flex-1 overflow-y-auto p-4">
               {tab === "faq" ? (
                 <FaqPanel isAdmin={isAdmin} />
               ) : (

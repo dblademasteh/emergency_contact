@@ -167,7 +167,7 @@ export function CsvImport({
                   Imported {result.imported} of {result.total} contacts
                 </p>
                 {result.errors.length > 0 && (
-                  <ul className="mt-2 max-h-32 space-y-1 overflow-y-auto text-xs text-red-600">
+                  <ul className="modal-scroll mt-2 max-h-32 space-y-1 overflow-y-auto text-xs text-red-600">
                     {result.errors.map((e) => (
                       <li key={e.row}>Row {e.row}: {e.error}</li>
                     ))}
