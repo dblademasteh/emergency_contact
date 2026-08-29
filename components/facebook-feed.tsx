@@ -328,7 +328,7 @@ export function FacebookFeed({
                 </div>
               </div>
             ) : pageUrl ? (
-              <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="relative h-80 w-full overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
                 {/* Feed header bar */}
                 <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800/60">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1877F2] text-white shadow-sm">
@@ -355,12 +355,12 @@ export function FacebookFeed({
                 <iframe
                   key={pageUrl}
                   src={embedUrl(pageUrl)}
-                  style={{ border: "none", overflow: "hidden" }}
-                  scrolling="no"
+                  style={{ border: "none" }}
+                  scrolling="yes"
                   frameBorder="0"
                   title="Facebook Feed"
                   allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                  className="h-[420px] w-full sm:h-[520px]"
+                  className="absolute inset-0 h-full w-full"
                 />
               </div>
             ) : (
