@@ -35,7 +35,37 @@ docker compose version
 
 ---
 
-## 🔑 1 · Give the NAS a GitHub SSH key (one-time)
+## � 0.5 · Permanent Fix: Move Docker to Volume 1 (One-Time Setup)
+
+**This prevents "no space left on device" errors permanently.** Docker on Synolology stores data on a small 7.7GB system partition, but your Volume 1 has 11TB. Move Docker's data root to Volume 1.
+
+### One-time setup:
+
+```bash
+# Stop Docker from Package Center (Control Panel → Package Center → Container Manager → Stop)
+
+# SSH into NAS
+ssh admin@192.168.0.148
+
+# Move Docker's data directory to Volume 1
+sudo mv /var/lib/docker /volume1/docker/docker-data
+sudo ln -s /volume1/docker/docker-data /var/lib/docker
+
+# Start Docker from Package Center (Container Manager → Start)
+```
+
+**Verify it worked:**
+```bash
+docker system df
+# Now shows much more available space
+df -h /var/lib/docker
+```
+
+After this, all Docker operations use your full 11TB array.
+
+---
+
+## �🔑 1 · Give the NAS a GitHub SSH key (one-time)
 
 The repo is **private**, so the NAS needs an SSH key registered with GitHub.
 
