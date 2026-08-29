@@ -11,10 +11,10 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     db.select().from(settings).where(eq(settings.key, "appLogo")).limit(1),
     db.select().from(settings).where(eq(settings.key, "appName")).limit(1),
   ]);
-  const hasLogo = Boolean(logoSetting?.value);
+  const hasLogo = Boolean(logoSetting?.[0]?.value);
   const iconSrc = hasLogo ? "/app-logo" : "/icon-512x512.png";
   const icon192 = hasLogo ? "/app-logo" : "/icon-192x192.png";
-  const appName = nameSetting?.value || "Emergency Contacts";
+  const appName = nameSetting?.[0]?.value || "Emergency Contacts";
 
   return {
     id: "/",

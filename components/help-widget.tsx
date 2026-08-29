@@ -14,6 +14,8 @@ export function HelpWidget({ isAdmin }: Props) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"faq" | "suggestion">("faq");
   const { containerRef, triggerRef } = useFocusTrap(open);
+  // Cast to HTMLButtonElement since triggerRef is typed as HTMLElement but used on a button
+  const buttonTriggerRef = triggerRef as React.RefObject<HTMLButtonElement | null>;
 
   useEffect(() => {
     if (!open) return;
@@ -31,7 +33,7 @@ export function HelpWidget({ isAdmin }: Props) {
   return (
     <>
       <button
-        ref={triggerRef}
+        ref={buttonTriggerRef}
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Help and suggestions"
