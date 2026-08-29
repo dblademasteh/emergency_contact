@@ -129,6 +129,25 @@ openssl rand -hex 32
 
 ## 🚀 4 · Build & start (first deploy)
 
+**If you get "no space left on device" during build:**
+
+```bash
+# Stop all containers and clear Docker build cache
+cd /volume1/docker/emergency_contact
+docker compose down
+docker system prune -a -f
+
+# Clear buildkit database files that may be full
+rm -f /volume1/@docker/buildkit/metadata_v2.db
+rm -f /volume1/@docker/buildkit/cache.db
+rm -f /volume1/@docker/buildkit/history.db
+
+# Now rebuild
+docker compose up -d --build
+```
+
+Then run the build normally:
+
 ```bash
 cd /volume1/docker/emergency_contact
 docker compose up -d --build

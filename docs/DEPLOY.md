@@ -105,6 +105,7 @@ Click **OK** (this actually saves it). Then select the task and press **Run**.
 | Can't sign in as admin after a fresh DB | DB re-initialized; admin accounts come from `prisma/seed.ts` (random passwords) which does **not** auto-run on boot | Recreate admins: on the NAS run `npx prisma db seed` (prints the random admin passwords) or add admins manually. The **8 category types** and **10 tutorial FAQs** come back automatically via migrations. |
 | Cloudflare tunnel URL not loading | `cloudflared` container down | In the Task Scheduler runbook use `docker compose up -d` (starts all services incl. `cloudflared`). |
 | Tunnel token expired (log: `token has expired` / tunnel "Inactive" in dashboard but container is up) | The remotely-managed tunnel token rotated/expired | Get a fresh token: **Zero Trust → Networks → Tunnels → `<tunnel>` → Overview → Configure → Docker**, copy the `--token eyJ...` value into `CLOUDFLARED_TOKEN` in `/volume1/docker/emergency_contact/.env`, then run the deploy task again (or `docker compose up -d cloudflared`). Ingress rules live on Cloudflare's side — no repo change needed. |
+| "no space left on device" during build | Docker build cache filled the system partition | Clear Docker caches first: run `docker system prune -a -f` and delete `/volume1/@docker/buildkit/metadata_v2.db` before redeploying. Alternatively, decrease image layers or use multi-stage builds with smaller base images. |
 
 ---
 
