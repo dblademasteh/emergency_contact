@@ -35,33 +35,24 @@ docker compose version
 
 ---
 
-## � 0.5 · Permanent Fix: Move Docker to Volume 1 (One-Time Setup)
+## ⚠️ 0.5 · Docker storage location (Synology)
 
-**This prevents "no space left on device" errors permanently.** Docker on Synolology stores data on a small 7.7GB system partition, but your Volume 1 has 11TB. Move Docker's data root to Volume 1.
+Do **not** manually move or symlink `/var/lib/docker`. On Synology, this path is
+a Container Manager-managed Btrfs mount; changing it manually can prevent
+Container Manager from starting or corrupt Docker's storage.
 
-### One-time setup:
+If Docker storage must be relocated, use the supported storage-location
+setting in **DSM → Container Manager → Settings** (the exact option depends on
+your DSM/Container Manager version). Apply the change while Container Manager
+is stopped, then start it again and verify:
 
 ```bash
-# Stop Docker from Package Center (Control Panel → Package Center → Container Manager → Stop)
-
-# SSH into NAS
-ssh admin@192.168.0.148
-
-# Move Docker's data directory to Volume 1
-sudo mv /var/lib/docker /volume1/docker/docker-data
-sudo ln -s /volume1/docker/docker-data /var/lib/docker
-
-# Start Docker from Package Center (Container Manager → Start)
+docker info | grep "Docker Root Dir"
+df -h / /volume1
 ```
 
-**Verify it worked:**
-```bash
-docker system df
-# Now shows much more available space
-df -h /var/lib/docker
-```
-
-After this, all Docker operations use your full 11TB array.
+If that setting is unavailable, use Docker cleanup commands or expand the
+volume through DSM Storage Manager rather than modifying `/var/lib/docker`.
 
 ---
 
