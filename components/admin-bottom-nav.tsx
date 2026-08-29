@@ -1,19 +1,17 @@
 "use client";
 
 import {
-  FolderIcon,
+  HomeIcon,
   LogOutIcon,
   MessageSquareIcon,
-  PillIcon,
-  PlusIcon,
+  SettingsIcon,
 } from "@/components/icons";
 
 type Props = {
   isAdmin: boolean;
-  onAddContact: () => void;
-  onAddGroup: () => void;
-  onManageTypes: () => void;
+  onHome: () => void;
   onOpenSuggestions: () => void;
+  onOpenSettings: () => void;
   onSignOut: () => void;
 };
 
@@ -25,10 +23,9 @@ const label = "text-[11px] font-bold tracking-wide";
 
 export function AdminBottomNav({
   isAdmin,
-  onAddContact,
-  onAddGroup,
-  onManageTypes,
+  onHome,
   onOpenSuggestions,
+  onOpenSettings,
   onSignOut,
 }: Props) {
   return (
@@ -42,34 +39,16 @@ export function AdminBottomNav({
       >
         <button
           type="button"
-          onClick={onAddContact}
+          onClick={onHome}
           className={`${baseButton} text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-500/15 dark:hover:text-rose-300`}
         >
           <span
             className={`${iconBox} bg-linear-to-br from-rose-500 to-red-600 text-white shadow-lg shadow-rose-600/30 group-hover:scale-105`}
           >
-            <PlusIcon className="h-4.5 w-4.5" />
+            <HomeIcon className="h-4.5 w-4.5" />
           </span>
-          <span className={label}>Contact</span>
+          <span className={label}>Home</span>
         </button>
-        <button type="button" onClick={onAddGroup} className={baseButton}>
-          <span
-            className={`${iconBox} bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:group-hover:bg-slate-700 dark:group-hover:text-slate-200`}
-          >
-            <FolderIcon className="h-4.5 w-4.5" />
-          </span>
-          <span className={label}>Group</span>
-        </button>
-        {isAdmin && (
-          <button type="button" onClick={onManageTypes} className={baseButton}>
-            <span
-              className={`${iconBox} bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:group-hover:bg-slate-700 dark:group-hover:text-slate-200`}
-            >
-              <PillIcon className="h-4.5 w-4.5" />
-            </span>
-            <span className={label}>Pills</span>
-          </button>
-        )}
         {isAdmin && (
           <button
             type="button"
@@ -82,6 +61,16 @@ export function AdminBottomNav({
               <MessageSquareIcon className="h-4.5 w-4.5" />
             </span>
             <span className={label}>Suggestions</span>
+          </button>
+        )}
+        {isAdmin && (
+          <button type="button" onClick={onOpenSettings} className={baseButton}>
+            <span
+              className={`${iconBox} bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:group-hover:bg-slate-700 dark:group-hover:text-slate-200`}
+            >
+              <SettingsIcon className="h-4.5 w-4.5" />
+            </span>
+            <span className={label}>Settings</span>
           </button>
         )}
         <button

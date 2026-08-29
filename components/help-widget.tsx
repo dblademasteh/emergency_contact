@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { FaqPanel } from "@/components/faq-panel";
 import { SuggestionPanel } from "@/components/suggestion-panel";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 import { HelpIcon, MessageSquareIcon, SendIcon, XIcon } from "@/components/icons";
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
 export function HelpWidget({ isAdmin }: Props) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"faq" | "suggestion">("faq");
+  const { containerRef, triggerRef } = useFocusTrap(open);
 
   useEffect(() => {
     if (!open) return;
@@ -29,9 +31,12 @@ export function HelpWidget({ isAdmin }: Props) {
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Help and suggestions"
+        aria-haspopup="dialog"
+        aria-expanded={open}
         className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-br from-rose-500 to-red-600 text-white shadow-lg shadow-rose-600/30 transition hover:brightness-110 active:scale-95"
       >
         <HelpIcon className="h-6 w-6" />
@@ -45,7 +50,13 @@ export function HelpWidget({ isAdmin }: Props) {
             onClick={() => setOpen(false)}
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
           />
-          <div className="relative z-10 flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+          <div
+            ref={containerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Help and suggestions"
+            className="relative z-10 flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+          >
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-800">
               <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
                 Help &amp; suggestions

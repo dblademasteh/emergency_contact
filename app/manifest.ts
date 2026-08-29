@@ -7,19 +7,19 @@ import { eq } from "drizzle-orm";
 export const dynamic = "force-dynamic";
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
-  const [setting] = await db
-    .select()
-    .from(settings)
-    .where(eq(settings.key, "appLogo"))
-    .limit(1);
-  const hasLogo = Boolean(setting?.value);
+  const [logoSetting, nameSetting] = await Promise.all([
+    db.select().from(settings).where(eq(settings.key, "appLogo")).limit(1),
+    db.select().from(settings).where(eq(settings.key, "appName")).limit(1),
+  ]);
+  const hasLogo = Boolean(logoSetting?.value);
   const iconSrc = hasLogo ? "/app-logo" : "/icon-512x512.png";
   const icon192 = hasLogo ? "/app-logo" : "/icon-192x192.png";
+  const appName = nameSetting?.value || "Emergency Contacts";
 
   return {
     id: "/",
-    name: "Emergency Contacts",
-    short_name: "Emergency",
+    name: appName,
+    short_name: appName.length > 12 ? `${appName.slice(0, 12)}…` : appName,
     description:
       "Your personal directory for emergency contacts — police, fire, medical, family and more. Works offline.",
     start_url: "/",
