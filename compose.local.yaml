@@ -1,14 +1,16 @@
+name: emergency-contacts-dev
+
 services:
   db:
     image: postgres:16-alpine
-    container_name: emergency-contacts-db
+    container_name: emergency-contacts-local-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: emergency
       POSTGRES_PASSWORD: emergency
       POSTGRES_DB: emergency_contacts
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

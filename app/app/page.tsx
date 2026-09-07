@@ -74,7 +74,12 @@ export default function Page() {
   const isEditor = role !== null;
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("ALL");
-  const [currentGroupId, setCurrentGroupId] = useState<string | null>(null);
+  const [currentGroupId, setCurrentGroupId] = useState<string | null>(
+    () =>
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("group")
+        : null
+  );
   const [showAllTypes, setShowAllTypes] = useState(true);
   const [showAllContacts, setShowAllContacts] = useState(false);
 
@@ -732,6 +737,7 @@ export default function Page() {
                     contact={contact}
                     types={types}
                     canEdit={isEditor}
+                    groupName={contact.groupId ? groupById.get(contact.groupId)?.name : undefined}
                     onEdit={openEdit}
                     onDelete={handleDelete}
                   />
@@ -862,6 +868,7 @@ export default function Page() {
                       contact={contact}
                       types={types}
                       canEdit={isEditor}
+                      groupName={contact.groupId ? groupById.get(contact.groupId)?.name : undefined}
                       onEdit={openEdit}
                       onDelete={handleDelete}
                     />

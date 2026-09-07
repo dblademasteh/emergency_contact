@@ -292,6 +292,7 @@ export default function PublicHome() {
                   <ContactCard
                     contact={contact}
                     types={types}
+                    groupName={contact.groupId ? groupById.get(contact.groupId)?.name : undefined}
                     onEdit={() => {}}
                     onDelete={() => {}}
                   />
@@ -414,6 +415,7 @@ export default function PublicHome() {
                     <ContactCard
                       contact={contact}
                       types={types}
+                      groupName={contact.groupId ? groupById.get(contact.groupId)?.name : undefined}
                       onEdit={() => {}}
                       onDelete={() => {}}
                     />

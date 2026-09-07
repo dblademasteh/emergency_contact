@@ -11,6 +11,7 @@ type ImportResult = {
 type Props = {
   defaultType?: string;
   defaultGroupId?: string;
+  groups?: { id: string; label: string }[];
   label?: string;
   onImported: () => void;
 };
@@ -31,6 +32,7 @@ function downloadTemplate() {
 export function CsvImport({
   defaultType,
   defaultGroupId,
+  groups,
   label,
   onImported,
 }: Props) {
@@ -38,6 +40,7 @@ export function CsvImport({
   const [open, setOpen] = useState(false);
   const [csvText, setCsvText] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
+  const [targetGroupId, setTargetGroupId] = useState(defaultGroupId ?? "");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +71,7 @@ export function CsvImport({
         body: JSON.stringify({
           csv: csvText,
           defaultType: defaultType ?? null,
-          defaultGroupId: defaultGroupId ?? null,
+          defaultGroupId: targetGroupId || null,
         }),
       });
       const data = await res.json().catch(() => null);
@@ -90,14 +93,21 @@ export function CsvImport({
     setFileName(null);
     setResult(null);
     setError(null);
+    setTargetGroupId(defaultGroupId ?? "");
     if (inputRef.current) inputRef.current.value = "";
   }
+
+  const inputClass =
+    "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500";
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setTargetGroupId(defaultGroupId ?? "");
+          setOpen(true);
+        }}
         className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-400 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:bg-slate-800"
       >
         <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -123,6 +133,34 @@ export function CsvImport({
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
               </button>
             </div>
+
+            {groups && groups.length > 0 && (
+              <div className="mb-3">
+                <label
+                  htmlFor="csv-target-group"
+                  className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
+                >
+                  Import into group{" "}
+                  <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
+                </label>
+                <select
+                  id="csv-target-group"
+                  value={targetGroupId}
+                  onChange={(e) => setTargetGroupId(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">No group</option>
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
+                  Rows without a group_id column will be added to this group, inheriting its category.
+                </p>
+              </div>
+            )}
 
             <div className="mb-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center dark:border-slate-700 dark:bg-slate-800/50">
               <input

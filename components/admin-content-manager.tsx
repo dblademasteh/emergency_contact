@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Contact, ContactInput } from "@/lib/contacts";
 import type { Group, GroupInput } from "@/lib/groups";
-import { displayPath } from "@/lib/groups";
+import { displayPath, groupPath } from "@/lib/groups";
 import type { ContactType, ContactTypeInput } from "@/lib/contact-types";
 import { categoryStyle } from "@/lib/contact-types";
 import { categoryIcon } from "@/components/category-icons";
@@ -14,7 +14,12 @@ import { GroupCard } from "@/components/group-card";
 import { GroupForm } from "@/components/group-form";
 import { TypeManager } from "@/components/type-manager";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { PlusIcon, PillIcon, FolderIcon } from "@/components/icons";
+import {
+  PlusIcon,
+  PillIcon,
+  FolderIcon,
+  ChevronLeftIcon,
+} from "@/components/icons";
 
 function sortContacts(contacts: Contact[]) {
   return [...contacts].sort((a, b) => {
@@ -47,7 +52,6 @@ export function AdminContentManager() {
 
   // Contact list filter state
   const [contactFilter, setContactFilter] = useState<string>("ALL");
-  const [showAllContacts, setShowAllContacts] = useState(false);
 
   // Contact form state
   const [formOpen, setFormOpen] = useState(false);
@@ -59,6 +63,7 @@ export function AdminContentManager() {
   const [groupFormOpen, setGroupFormOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [groupFormKey, setGroupFormKey] = useState(0);
+  const [openGroupId, setOpenGroupId] = useState<string | null>(null);
 
   // Type form state
   const [typeFormOpen, setTypeFormOpen] = useState(false);
@@ -155,17 +160,53 @@ export function AdminContentManager() {
     [groups]
   );
 
-  const filteredContacts = useMemo(
-    () =>
-      contactFilter === "ALL"
-        ? contacts
-        : contacts.filter((c) => c.type === contactFilter),
-    [contacts, contactFilter]
+  const groupById = useMemo(
+    () => new Map(groups.map((g) => [g.id, g])),
+    [groups]
   );
 
-  const visibleContacts = showAllContacts
-    ? filteredContacts
-    : filteredContacts.slice(0, 5);
+  const openPath = useMemo(
+    () => groupPath(openGroupId, groupById),
+    [openGroupId, groupById]
+  );
+
+  const openParentId =
+    openPath.length > 0 ? (openPath[openPath.length - 2]?.id ?? null) : null;
+
+  const openChildGroups = useMemo(
+    () => sortGroups(groups.filter((g) => g.parentId === openGroupId)),
+    [groups, openGroupId]
+  );
+
+  const filteredContacts = useMemo(() => {
+    const inGroup = openGroupId
+      ? contacts.filter((c) => c.groupId === openGroupId)
+      : contacts;
+    return contactFilter === "ALL"
+      ? inGroup
+      : inGroup.filter((c) => c.type === contactFilter);
+  }, [contacts, contactFilter, openGroupId]);
+
+  const contactGroups = useMemo(() => {
+    const byGroup = new Map<string, Contact[]>();
+    const ungrouped: Contact[] = [];
+    for (const c of filteredContacts) {
+      if (c.groupId && groupById.has(c.groupId)) {
+        const list = byGroup.get(c.groupId) ?? [];
+        list.push(c);
+        byGroup.set(c.groupId, list);
+      } else {
+        ungrouped.push(c);
+      }
+    }
+    const entries: { group: Group | null; contacts: Contact[] }[] = [];
+    for (const [gid, list] of byGroup) {
+      entries.push({ group: groupById.get(gid) ?? null, contacts: list });
+    }
+    entries.sort((a, b) => a.group!.name.localeCompare(b.group!.name));
+    if (ungrouped.length > 0) entries.push({ group: null, contacts: ungrouped });
+    return entries;
+  }, [filteredContacts, groupById]);
 
   const chipClass = (active: boolean, activeCls?: string) =>
     `shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 focus-visible:ring-offset-1 ${
@@ -174,12 +215,6 @@ export function AdminContentManager() {
           "border-slate-900 bg-slate-900 text-white shadow-md shadow-slate-900/20"
         : "border-slate-300 bg-white text-slate-600 shadow-sm hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100"
     }`;
-
-  const openAdd = () => {
-    setEditing(null);
-    setFormKey((k) => k + 1);
-    setFormOpen(true);
-  };
 
   const openEdit = (contact: Contact) => {
     setEditing(contact);
@@ -309,6 +344,14 @@ export function AdminContentManager() {
           const logoData = await logoRes.json();
           if (!logoRes.ok) return { error: logoData.error ?? "Failed to save logo." };
         }
+        if (!editingGroup) {
+          setDialog({
+            title: "Group created",
+            message: `"${input.name}" was created.\n\nUse this ID in a CSV's "group_id" column to import contacts into it:\n\n${id}`,
+            confirmLabel: "Done",
+            onConfirm: () => setDialog(null),
+          });
+        }
         await loadAll();
       } catch {
         return { error: "Network error. Check your connection and try again." };
@@ -334,6 +377,7 @@ export function AdminContentManager() {
               return;
             }
             await loadAll();
+            setOpenGroupId((cur) => (cur === group.id ? null : cur));
             setDialog(null);
           } catch {
             setDialog({ title: "Network error", message: "Network error. Check your connection and try again." });
@@ -435,21 +479,8 @@ export function AdminContentManager() {
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {filteredContacts.length} of {contacts.length} total
+              {openGroupId ? " in this group" : ""}
             </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <CsvImport
-              defaultType={contactFilter !== "ALL" ? contactFilter : undefined}
-              onImported={loadAll}
-            />
-            <button
-              type="button"
-              onClick={openAdd}
-              className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-rose-600 to-red-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-md shadow-rose-600/25 transition hover:brightness-110"
-            >
-              <PlusIcon className="h-4 w-4" />
-              Add
-            </button>
           </div>
         </div>
 
@@ -484,34 +515,42 @@ export function AdminContentManager() {
 
         {filteredContacts.length === 0 ? (
           <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-            {contacts.length === 0 ? "No contacts yet." : "No contacts in this category."}
+            {contacts.length === 0
+              ? "No contacts yet."
+              : openGroupId
+                ? "No contacts in this group."
+                : "No contacts in this category."}
           </p>
         ) : (
-          <ul className="modal-scroll max-h-80 space-y-3 overflow-y-auto pr-1">
-            {visibleContacts.map((contact) => (
-              <li key={contact.id}>
-                <ContactCard
-                  contact={contact}
-                  types={types}
-                  canEdit
-                  onEdit={openEdit}
-                  onDelete={handleDelete}
-                />
-              </li>
+          <div className="modal-scroll max-h-80 space-y-4 overflow-y-auto pr-1">
+            {contactGroups.map(({ group, contacts: gContacts }) => (
+              <div key={group?.id ?? "nogroup"}>
+                <h3 className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  <FolderIcon
+                    className={`h-3.5 w-3.5 shrink-0 ${group ? "text-slate-400" : "text-slate-300 dark:text-slate-600"}`}
+                  />
+                  {group?.name ?? "No group"}
+                  <span className="font-semibold text-slate-400 dark:text-slate-500">
+                    {gContacts.length}
+                  </span>
+                </h3>
+                <ul className="space-y-3">
+                  {gContacts.map((contact) => (
+                    <li key={contact.id}>
+                      <ContactCard
+                        contact={contact}
+                        types={types}
+                        canEdit
+                        groupName={contact.groupId ? groupById.get(contact.groupId)?.name : undefined}
+                        onEdit={openEdit}
+                        onDelete={handleDelete}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
-        )}
-
-        {filteredContacts.length > 5 && (
-          <button
-            type="button"
-            onClick={() => setShowAllContacts((v) => !v)}
-            className="mt-3 w-full rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-          >
-            {showAllContacts
-              ? "Show less"
-              : `Show all ${filteredContacts.length} contacts`}
-          </button>
+          </div>
         )}
       </section>
 
@@ -521,12 +560,22 @@ export function AdminContentManager() {
           <div>
             <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
               <FolderIcon className="h-4 w-4 text-slate-400" />
-              Groups
+              {openGroupId ? "Inside group" : "Groups"}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {groups.length} total
+              {openGroupId
+                ? openPath.map((g) => g.name).join(" / ")
+                : `${groups.length} total`}
             </p>
           </div>
+          {openGroupId && (
+            <CsvImport
+              defaultType={contactFilter !== "ALL" ? contactFilter : undefined}
+              defaultGroupId={openGroupId}
+              groups={contactGroupOptions}
+              onImported={loadAll}
+            />
+          )}
           <button
             type="button"
             onClick={openAddGroup}
@@ -536,13 +585,53 @@ export function AdminContentManager() {
             Add
           </button>
         </div>
-        {groups.length === 0 ? (
+
+        {openPath.length > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setOpenGroupId(openParentId)}
+              className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            >
+              <ChevronLeftIcon className="h-4 w-4" />
+              Back
+            </button>
+            {openPath.map((group, i) => {
+              const isLast = i === openPath.length - 1;
+              return !isLast ? (
+                <button
+                  key={group.id}
+                  type="button"
+                  onClick={() => setOpenGroupId(group.id)}
+                  className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                >
+                  <FolderIcon className="h-3.5 w-3.5" />
+                  {group.name}
+                </button>
+              ) : (
+                <span
+                  key={group.id}
+                  className="inline-flex items-center gap-1 rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-sm"
+                >
+                  <FolderIcon className="h-3.5 w-3.5" />
+                  {group.name}
+                </span>
+              );
+            })}
+          </div>
+        )}
+
+        {openChildGroups.length === 0 ? (
           <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-            No groups yet.
+            {groups.length === 0
+              ? "No groups yet."
+              : openGroupId
+                ? "No sub-groups in this group."
+                : "No top-level groups."}
           </p>
         ) : (
           <ul className="space-y-3">
-            {groups.map((group) => (
+            {openChildGroups.map((group) => (
               <li key={group.id}>
                 <GroupCard
                   name={group.name}
@@ -552,7 +641,7 @@ export function AdminContentManager() {
                   contactCount={contacts.filter((c) => c.groupId === group.id).length}
                   childCount={childrenByParent.get(group.id)?.length ?? 0}
                   canEdit
-                  onOpen={() => {}}
+                  onOpen={() => setOpenGroupId(group.id)}
                   onEdit={() => openEditGroup(group)}
                   onDelete={() => handleDeleteGroup(group)}
                 />
@@ -599,7 +688,7 @@ export function AdminContentManager() {
         initial={editing}
         types={types}
         groups={contactGroupOptions}
-        defaultGroupId={null}
+        defaultGroupId={openGroupId}
         onClose={() => setFormOpen(false)}
         onSave={handleSave}
       />
@@ -609,7 +698,7 @@ export function AdminContentManager() {
         open={groupFormOpen}
         initial={editingGroup}
         types={types}
-        defaultParentId={null}
+        defaultParentId={openGroupId}
         defaultType="OTHER"
         parentOptions={groupOptions}
         onClose={() => setGroupFormOpen(false)}

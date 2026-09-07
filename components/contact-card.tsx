@@ -6,6 +6,7 @@ import { categoryIcon } from "@/components/category-icons";
 import {
   EditIcon,
   FacebookIcon,
+  FolderIcon,
   MapPinIcon,
   PhoneIcon,
   TrashIcon,
@@ -15,6 +16,7 @@ type Props = {
   contact: Contact;
   types: ContactType[];
   canEdit?: boolean;
+  groupName?: string;
   onEdit: (contact: Contact) => void;
   onDelete: (contact: Contact) => void;
 };
@@ -23,6 +25,7 @@ export function ContactCard({
   contact,
   types,
   canEdit = false,
+  groupName,
   onEdit,
   onDelete,
 }: Props) {
@@ -63,6 +66,12 @@ export function ContactCard({
           >
             {label}
           </span>
+          {groupName && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              <FolderIcon className="h-3 w-3" />
+              {groupName}
+            </span>
+          )}
         </div>
 
         <p className="mt-0.5 flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">
