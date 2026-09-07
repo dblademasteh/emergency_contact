@@ -70,6 +70,12 @@ export function AdminContentManager() {
   const [editingType, setEditingType] = useState<ContactType | null>(null);
   const [typeFormKey, setTypeFormKey] = useState(0);
 
+  // Quick add state
+  const [quickName, setQuickName] = useState("");
+  const [quickPhone, setQuickPhone] = useState("");
+  const [quickBusy, setQuickBusy] = useState(false);
+  const [quickError, setQuickError] = useState<string | null>(null);
+
   // Confirm dialog state
   const [dialog, setDialog] = useState<{
     title: string;
@@ -218,6 +224,12 @@ export function AdminContentManager() {
 
   const openEdit = (contact: Contact) => {
     setEditing(contact);
+    setFormKey((k) => k + 1);
+    setFormOpen(true);
+  };
+
+  const openAddContact = () => {
+    setEditing(null);
     setFormKey((k) => k + 1);
     setFormOpen(true);
   };
@@ -450,6 +462,47 @@ export function AdminContentManager() {
     [loadAll]
   );
 
+  const quickAddTarget = openGroupId
+    ? `group "${groupById.get(openGroupId)?.name ?? ""}"`
+    : contactFilter !== "ALL"
+      ? `category "${types.find((t) => t.value === contactFilter)?.label ?? contactFilter}"`
+      : "no group (Other)";
+
+  const handleQuickAdd = useCallback(async () => {
+    const name = quickName.trim();
+    const phone = quickPhone.trim();
+    if (!name || !phone) {
+      setQuickError("Name and phone are both required.");
+      return;
+    }
+    setQuickBusy(true);
+    setQuickError(null);
+    try {
+      const res = await fetch("/api/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          phone,
+          type: contactFilter !== "ALL" ? contactFilter : "OTHER",
+          groupId: openGroupId ?? null,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setQuickError(data?.error ?? "Failed to add contact.");
+        return;
+      }
+      setQuickName("");
+      setQuickPhone("");
+      await loadAll();
+    } catch {
+      setQuickError("Network error. Check your connection and try again.");
+    } finally {
+      setQuickBusy(false);
+    }
+  }, [quickName, quickPhone, contactFilter, openGroupId, loadAll]);
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -482,6 +535,71 @@ export function AdminContentManager() {
               {openGroupId ? " in this group" : ""}
             </p>
           </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <CsvImport
+              defaultType={contactFilter !== "ALL" ? contactFilter : undefined}
+              defaultGroupId={openGroupId ?? undefined}
+              groups={contactGroupOptions}
+              onImported={loadAll}
+            />
+            <button
+              type="button"
+              onClick={openAddContact}
+              className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-rose-600 to-red-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-md shadow-rose-600/25 transition hover:brightness-110"
+            >
+              <PlusIcon className="h-4 w-4" />
+              Add
+            </button>
+          </div>
+        </div>
+
+        {/* Quick add */}
+        <div className="mb-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/40">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleQuickAdd();
+            }}
+            className="flex flex-col gap-2 sm:flex-row"
+          >
+            <input
+              value={quickName}
+              onChange={(e) => {
+                setQuickName(e.target.value);
+                setQuickError(null);
+              }}
+              placeholder="Quick add — name"
+              aria-label="Quick add name"
+              className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-rose-400 focus:ring-2 focus:ring-rose-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-rose-500"
+            />
+            <input
+              value={quickPhone}
+              onChange={(e) => {
+                setQuickPhone(e.target.value);
+                setQuickError(null);
+              }}
+              type="tel"
+              placeholder="Phone"
+              aria-label="Quick add phone"
+              className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-rose-400 focus:ring-2 focus:ring-rose-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-rose-500"
+            />
+            <button
+              type="submit"
+              disabled={quickBusy || !quickName.trim() || !quickPhone.trim()}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-linear-to-r from-rose-600 to-red-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-rose-600/25 transition hover:brightness-110 disabled:opacity-60"
+            >
+              <PlusIcon className="h-4 w-4" />
+              {quickBusy ? "Adding…" : "Add"}
+            </button>
+          </form>
+          {quickError && (
+            <p className="mt-2 text-xs font-medium text-red-600">{quickError}</p>
+          )}
+          <p className="mt-2 text-[11px] leading-snug text-slate-400 dark:text-slate-500">
+            Adds to {quickAddTarget}. Tip: “Add” opens the full form (logo,
+            location, notes); “Import CSV” adds many at once — duplicates are
+            skipped automatically.
+          </p>
         </div>
 
         {types.length > 0 && (
@@ -514,13 +632,32 @@ export function AdminContentManager() {
         )}
 
         {filteredContacts.length === 0 ? (
-          <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-            {contacts.length === 0
-              ? "No contacts yet."
-              : openGroupId
-                ? "No contacts in this group."
-                : "No contacts in this category."}
-          </p>
+          <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 p-6 text-center dark:border-slate-700 dark:bg-slate-900/60">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {contacts.length === 0
+                ? "No contacts yet."
+                : openGroupId
+                  ? "No contacts in this group."
+                  : "No contacts in this category."}
+            </p>
+            {contacts.length === 0 && (
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={openAddContact}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-rose-600 to-red-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-md shadow-rose-600/25 transition hover:brightness-110"
+                >
+                  <PlusIcon className="h-4 w-4" />
+                  Add a contact
+                </button>
+                <CsvImport
+                  groups={contactGroupOptions}
+                  onImported={loadAll}
+                  label="Import CSV"
+                />
+              </div>
+            )}
+          </div>
         ) : (
           <div className="modal-scroll max-h-80 space-y-4 overflow-y-auto pr-1">
             {contactGroups.map(({ group, contacts: gContacts }) => (
@@ -568,14 +705,6 @@ export function AdminContentManager() {
                 : `${groups.length} total`}
             </p>
           </div>
-          {openGroupId && (
-            <CsvImport
-              defaultType={contactFilter !== "ALL" ? contactFilter : undefined}
-              defaultGroupId={openGroupId}
-              groups={contactGroupOptions}
-              onImported={loadAll}
-            />
-          )}
           <button
             type="button"
             onClick={openAddGroup}

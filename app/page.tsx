@@ -15,11 +15,11 @@ import { EmergencyBanner } from "@/components/emergency-banner";
 import { GroupCard } from "@/components/group-card";
 import { HomeImage } from "@/components/home-image";
 import { FacebookFeed } from "@/components/facebook-feed";
-import { InstallButton } from "@/components/install-button";
+import { AppBar } from "@/components/app-bar";
+import { GuestBottomNav } from "@/components/guest-bottom-nav";
 import { OfflineBanner } from "@/components/offline-banner";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { HelpWidget } from "@/components/help-widget";
-import { PhoneIcon, SearchIcon } from "@/components/icons";
+import { SearchIcon } from "@/components/icons";
 
 type Filter = string | "ALL";
 
@@ -178,6 +178,13 @@ export default function PublicHome() {
   }, [contacts]);
 
   const primaryCount = contacts.filter((c) => c.isPrimary).length;
+  const emergencyNumber = contacts.find((c) => c.isPrimary)?.phone ?? null;
+
+  const focusSearch = () => {
+    const input = document.getElementById("contact-search");
+    input?.scrollIntoView({ behavior: "smooth", block: "center" });
+    (input as HTMLInputElement | null)?.focus({ preventScroll: true });
+  };
 
   const openGroup = (id: string) => {
     setQuery("");
@@ -196,43 +203,17 @@ export default function PublicHome() {
   const isHome = path.length === 0 && filter === "ALL";
 
   return (
-    <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-4 pb-32 pt-6">
-      <header className="mb-6 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-linear-to-br from-rose-500 via-red-600 to-red-800 text-white shadow-lg shadow-red-600/30">
-            {appLogo ? (
-              <img src={appLogo} alt="App logo" className="h-full w-full object-cover" />
-            ) : (
-              <PhoneIcon className="h-6 w-6" />
-            )}
-            <span
-              aria-hidden="true"
-              className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-amber-400 ring-2 ring-white"
-            />
-          </div>
-          <div>
-            <h1 className="text-lg font-extrabold leading-tight tracking-tight text-slate-900 dark:text-slate-100">
-              {appName || "Beep Me App V2.0"}
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {primaryCount > 0
-                ? `${primaryCount} pinned · ${contacts.length} total`
-                : `${contacts.length} contacts saved`}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <ThemeToggle />
-          <a
-            href="/login"
-            aria-label="Sign in"
-            className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-rose-600 to-red-600 px-4 py-2 text-sm font-bold text-white shadow-md shadow-rose-600/25 transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
-          >
-            Sign in
-          </a>
-          <InstallButton />
-        </div>
-      </header>
+    <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-4 pb-32 pt-4">
+      <AppBar
+        appLogo={appLogo}
+        appName={appName}
+        subtitle={
+          primaryCount > 0
+            ? `${primaryCount} pinned · ${contacts.length} total`
+            : `${contacts.length} contacts saved`
+        }
+        showSignIn
+      />
 
       <HomeImage image={homeImage} isAdmin={false} onChanged={() => {}} />
 
@@ -243,6 +224,7 @@ export default function PublicHome() {
       <div className="relative mb-4 mt-2">
         <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
+          id="contact-search"
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -444,39 +426,9 @@ export default function PublicHome() {
         </>
       )}
 
-      <footer className="mt-10">
-        <div className="relative overflow-hidden rounded-[1.75rem] bg-linear-to-br from-rose-600 via-red-600 to-red-800 p-5 text-white shadow-xl shadow-red-900/30">
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10"
-          />
-          <span
-            aria-hidden="true"
-            className="animate-beacon pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/20"
-          />
-          <span
-            aria-hidden="true"
-            className="hazard-stripes pointer-events-none absolute inset-x-0 bottom-0 h-2.5"
-          />
-          <div className="relative flex items-center justify-between gap-4">
-            <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-red-100">
-              <span className="relative flex h-2.5 w-2.5 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white" />
-              </span>
-              Works offline · tap a number to call
-            </p>
-            <a
-              href="/login"
-              className="shrink-0 rounded-full bg-white px-4 py-2 text-sm font-bold text-rose-700 shadow-md transition hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-rose-600"
-            >
-              Sign in
-            </a>
-          </div>
-        </div>
-      </footer>
-
       <HelpWidget isAdmin={false} />
+
+      <GuestBottomNav emergencyNumber={emergencyNumber} onSearch={focusSearch} />
     </main>
   );
 }

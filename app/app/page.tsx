@@ -18,9 +18,8 @@ import { EmergencyBanner } from "@/components/emergency-banner";
 import { GroupCard } from "@/components/group-card";
 import { GroupForm } from "@/components/group-form";
 import { FacebookFeed } from "@/components/facebook-feed";
-import { InstallButton } from "@/components/install-button";
+import { AppBar } from "@/components/app-bar";
 import { OfflineBanner } from "@/components/offline-banner";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { TypeManager } from "@/components/type-manager";
 import { AdminBottomNav } from "@/components/admin-bottom-nav";
 import { HelpWidget } from "@/components/help-widget";
@@ -28,7 +27,6 @@ import { cacheGet, cacheSet } from "@/lib/data-cache";
 import {
   ChevronLeftIcon,
   FolderIcon,
-  PhoneIcon,
   PlusIcon,
   SearchIcon,
 } from "@/components/icons";
@@ -72,6 +70,7 @@ export default function Page() {
   const [role, setRole] = useState<"admin" | "user" | null>(null);
   const isAdmin = role === "admin";
   const isEditor = role !== null;
+  const [pendingSuggestions, setPendingSuggestions] = useState(0);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("ALL");
   const [currentGroupId, setCurrentGroupId] = useState<string | null>(
@@ -86,7 +85,6 @@ export default function Page() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Contact | null>(null);
   const [formKey, setFormKey] = useState(0);
-  const [saving, setSaving] = useState(false);
 
   const [groupFormOpen, setGroupFormOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
@@ -252,6 +250,21 @@ export default function Page() {
     }
   }, []);
 
+  // Pending suggestions badge for the admin dock.
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    fetch("/api/suggestions")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { items?: unknown[] } | null) => {
+        if (!cancelled && data?.items) setPendingSuggestions(data.items.length);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin]);
+
   const groupById = useMemo(
     () => new Map(groups.map((g) => [g.id, g])),
     [groups]
@@ -371,7 +384,6 @@ export default function Page() {
       input: ContactInput,
       logo?: string | null
     ): Promise<{ error?: string } | void> => {
-      setSaving(true);
       try {
         let id: string;
         if (editing) {
@@ -417,8 +429,6 @@ export default function Page() {
         }
       } catch {
         return { error: "Network error. Check your connection and try again." };
-      } finally {
-        setSaving(false);
       }
     },
     [editing]
@@ -631,54 +641,18 @@ export default function Page() {
   const isHome = path.length === 0 && filter === "ALL";
 
   return (
-    <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-4 pb-32 pt-6">
-      <header className="mb-6 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-linear-to-br from-rose-500 via-red-600 to-red-800 text-white shadow-lg shadow-red-600/30">
-            {appLogo ? (
-              <img
-                src={appLogo}
-                alt="App logo"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <PhoneIcon className="h-6 w-6" />
-            )}
-            <span
-              aria-hidden="true"
-              className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-amber-400 ring-2 ring-white"
-            />
-          </div>
-          <div>
-            <h1 className="text-lg font-extrabold leading-tight tracking-tight text-slate-900 dark:text-slate-100">
-              {appName || "Beep Me App V2.0"}
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {primaryCount > 0
-                ? `${primaryCount} pinned · ${contacts.length} total`
-                : `${contacts.length} contacts saved`}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <ThemeToggle />
-          {!isEditor && (
-            <a
-              href="/login"
-              aria-label="Sign in"
-              className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-rose-600 to-red-600 px-4 py-2 text-sm font-bold text-white shadow-md shadow-rose-600/25 transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
-            >
-              Sign in
-            </a>
-          )}
-          <InstallButton />
-          {isAdmin && (
-            <span className="hidden rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white sm:inline">
-              Admin
-            </span>
-          )}
-        </div>
-      </header>
+    <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-4 pb-32 pt-4">
+      <AppBar
+        appLogo={appLogo}
+        appName={appName}
+        subtitle={
+          primaryCount > 0
+            ? `${primaryCount} pinned · ${contacts.length} total`
+            : `${contacts.length} contacts saved`
+        }
+        isAdmin={isAdmin}
+        showSignIn={!isEditor}
+      />
 
       <OfflineBanner />
 
@@ -919,46 +893,11 @@ export default function Page() {
         </>
       )}
 
-      <footer className="mt-10">
-        <div className="relative overflow-hidden rounded-[1.75rem] bg-linear-to-br from-rose-600 via-red-600 to-red-800 p-5 text-white shadow-xl shadow-red-900/30">
-          {/* Beacon rings */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10"
-          />
-          <span
-            aria-hidden="true"
-            className="animate-beacon pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/20"
-          />
-          {/* Hazard stripe bottom edge */}
-          <span
-            aria-hidden="true"
-            className="hazard-stripes pointer-events-none absolute inset-x-0 bottom-0 h-2.5"
-          />
-
-          <div className="relative flex items-center justify-between gap-4">
-            <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-red-100">
-              <span className="relative flex h-2.5 w-2.5 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white" />
-              </span>
-              {saving ? "Saving…" : "Works offline · tap a number to call"}
-            </p>
-            {!isEditor && (
-              <a
-                href="/login"
-                className="shrink-0 rounded-full bg-white px-4 py-2 text-sm font-bold text-rose-700 shadow-md transition hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-rose-600"
-              >
-                Sign in
-              </a>
-            )}
-          </div>
-        </div>
-      </footer>
-
       {isEditor && (
         <AdminBottomNav
           isAdmin={isAdmin}
+          activePage="home"
+          pendingSuggestions={pendingSuggestions}
           onHome={() => {
             setQuery("");
             setFilter("ALL");

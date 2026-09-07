@@ -103,6 +103,20 @@ function parseCsv(text: string): Row[] {
   return rows;
 }
 
+/**
+ * Digits-only phone key used for duplicate detection.
+ * Philippine formats are folded together so international and domestic
+ * prefixes are accepted as the same number:
+ * +639171234567 ≡ 639171234567 ≡ 0917-123-4567 ≡ 09171234567.
+ */
+function normalizePhone(phone: string): string {
+  const digits = phone.replace(/[^0-9]/g, "");
+  if ((digits.length === 11 || digits.length === 12) && digits.startsWith("63")) {
+    return `0${digits.slice(2)}`;
+  }
+  return digits;
+}
+
 export async function POST(request: NextRequest) {
   if (!isEditorToken(request.cookies.get(SESSION_COOKIE)?.value)) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
@@ -113,10 +127,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid body." }, { status: 400 });
   }
 
-  const { csv, defaultType, defaultGroupId } = body as {
+  const { csv, defaultType, defaultGroupId, duplicateMode } = body as {
     csv?: string;
     defaultType?: string;
     defaultGroupId?: string;
+    duplicateMode?: string;
   };
 
   if (!csv || typeof csv !== "string") {
@@ -132,6 +147,22 @@ export async function POST(request: NextRequest) {
     (await db.select({ value: contactTypes.value }).from(contactTypes)).map((t) => t.value)
   );
 
+  // Duplicate detection: "skip" (default) ignores rows whose normalized phone
+  // already exists in the database or repeats earlier in the file;
+  // "import" keeps the old append-everything behavior.
+  const skipDuplicates = duplicateMode !== "import";
+  const existingPhones = new Set<string>();
+  if (skipDuplicates) {
+    const existing = await db.select({ phone: contacts.phone }).from(contacts);
+    for (const c of existing) {
+      const normalized = normalizePhone(c.phone);
+      if (normalized) existingPhones.add(normalized);
+    }
+  }
+  const seenPhones = new Set<string>();
+  const duplicates: { row: number; phone: string }[] = [];
+  let skipped = 0;
+
   const created: { id: string; name: string }[] = [];
   const errors: { row: number; error: string }[] = [];
 
@@ -146,6 +177,16 @@ export async function POST(request: NextRequest) {
     if (!row.phone) {
       errors.push({ row: rowNum, error: "Phone is required." });
       continue;
+    }
+
+    const normalizedPhone = normalizePhone(row.phone);
+    if (skipDuplicates && normalizedPhone) {
+      if (existingPhones.has(normalizedPhone) || seenPhones.has(normalizedPhone)) {
+        duplicates.push({ row: rowNum, phone: row.phone });
+        skipped++;
+        continue;
+      }
+      seenPhones.add(normalizedPhone);
     }
 
     let type = row.type || defaultType || "OTHER";
@@ -201,6 +242,8 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     imported: created.length,
+    skipped,
+    duplicates,
     errors,
     total: rows.length,
   });

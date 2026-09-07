@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 
 type ImportResult = {
   imported: number;
+  skipped: number;
+  duplicates: { row: number; phone: string }[];
   errors: { row: number; error: string }[];
   total: number;
 };
@@ -41,6 +43,7 @@ export function CsvImport({
   const [csvText, setCsvText] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [targetGroupId, setTargetGroupId] = useState(defaultGroupId ?? "");
+  const [skipDuplicates, setSkipDuplicates] = useState(true);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +75,7 @@ export function CsvImport({
           csv: csvText,
           defaultType: defaultType ?? null,
           defaultGroupId: targetGroupId || null,
+          duplicateMode: skipDuplicates ? "skip" : "import",
         }),
       });
       const data = await res.json().catch(() => null);
@@ -162,6 +166,21 @@ export function CsvImport({
               </div>
             )}
 
+            <label className="mb-3 flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300">
+              <input
+                type="checkbox"
+                checked={skipDuplicates}
+                onChange={(e) => setSkipDuplicates(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-rose-600"
+              />
+              <span>
+                Skip duplicates
+                <span className="block text-xs text-slate-400 dark:text-slate-500">
+                  Rows whose phone number already exists (0917…, +63917…, and 63917… count as the same) or repeats in the file are ignored.
+                </span>
+              </span>
+            </label>
+
             <div className="mb-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center dark:border-slate-700 dark:bg-slate-800/50">
               <input
                 ref={inputRef}
@@ -204,6 +223,20 @@ export function CsvImport({
                 <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   Imported {result.imported} of {result.total} contacts
                 </p>
+                {result.skipped > 0 && (
+                  <p className="mt-1 text-sm font-medium text-amber-600 dark:text-amber-400">
+                    Skipped {result.skipped} duplicate{result.skipped === 1 ? "" : "s"}
+                  </p>
+                )}
+                {result.duplicates.length > 0 && (
+                  <ul className="modal-scroll mt-2 max-h-32 space-y-1 overflow-y-auto text-xs text-amber-600">
+                    {result.duplicates.map((d) => (
+                      <li key={`dup-${d.row}`}>
+                        Row {d.row}: duplicate phone {d.phone}
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 {result.errors.length > 0 && (
                   <ul className="modal-scroll mt-2 max-h-32 space-y-1 overflow-y-auto text-xs text-red-600">
                     {result.errors.map((e) => (
