@@ -15,13 +15,17 @@ Error  Please provide required params for Postgres driver:
 
 **Fix**
 Set environment variables in Dokploy → Application → Environment:
+
+Copy-paste block:
 ```
 POSTGRES_USER=emergency
 POSTGRES_PASSWORD=emergencyPostgres2026
 POSTGRES_DB=emergency_contacts
-SESSION_SECRET=<openssl rand -hex 32>
-DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+SESSION_SECRET=12d7dce3d5a84e39399d76b6ba94b6dd55c8f88a32019f09a7d4150438836f05
+DATABASE_URL=postgresql://emergency:emergencyPostgres2026@db:5432/emergency_contacts
 ```
+
+Replace `SESSION_SECRET` with your own `openssl rand -hex 32` if you prefer.
 
 `docker-compose.dokploy.yml` now falls back to building `DATABASE_URL` from Postgres vars if `DATABASE_URL` is not set:
 ```yaml
