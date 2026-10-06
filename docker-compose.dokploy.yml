@@ -30,7 +30,8 @@ services:
     # Dokploy provides env vars via the UI. No env_file needed – avoids
     # “file not found” when .env is gitignored.
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      # If DATABASE_URL is set in Dokploy UI use it, otherwise build from Postgres vars
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
       SESSION_SECRET: ${SESSION_SECRET}
       NODE_ENV: production
     expose:
