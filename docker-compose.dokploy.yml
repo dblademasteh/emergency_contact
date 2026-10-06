@@ -1,0 +1,44 @@
+# Dokploy deployment compose
+# No external networks, no Cloudflare tunnel.
+# Dokploy handles routing, SSL and environment variables via UI.
+# Uses a named volume for Postgres so Dokploy Volume Backups work.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    # Dokploy provides env vars via the UI. No env_file needed – avoids
+    # “file not found” when .env is gitignored.
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SESSION_SECRET: ${SESSION_SECRET}
+      NODE_ENV: production
+    expose:
+      - "3000"
+    # Do not publish ports; Dokploy / Traefik routes to the container.
+    # If you need local testing, uncomment the ports block below.
+    # ports:
+    #   - "3000:3000"
+
+volumes:
+  postgres_data:

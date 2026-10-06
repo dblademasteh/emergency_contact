@@ -38,6 +38,7 @@ yarn-error.log*
 
 # ...but ship the placeholder template (no real secrets) so the NAS knows what to set
 !.env.docker.example
+!.env.dokploy.example
 
 # cloudflare tunnel credentials & config (machine-specific, never commit)
 /cloudflared
