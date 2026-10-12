@@ -4,6 +4,7 @@ import { contactTypes, contacts, groups } from "@/db/schema";
 import { asc, eq } from "drizzle-orm";
 import { parseContactTypeInput } from "@/lib/contact-types";
 import { SESSION_COOKIE, isAdminToken } from "@/lib/auth";
+import { withCsrfProtection } from "@/lib/csrf";
 
 type Ctx = { params: Promise<{ value: string }> };
 
@@ -13,19 +14,22 @@ function isAdmin(request: NextRequest): boolean {
 
 function unauthorized() {
   return NextResponse.json(
-    { error: "Unauthorized. Admin access required." },
+    { success: false, error: "Unauthorized. Admin access required." },
     { status: 401 }
   );
 }
 
 export async function PATCH(request: NextRequest, ctx: Ctx) {
+  const csrfError = withCsrfProtection(request);
+  if (csrfError) return csrfError;
+
   if (!isAdmin(request)) return unauthorized();
 
   const { value } = await ctx.params;
   const body = await request.json().catch(() => null);
   const parsed = parseContactTypeInput(body);
   if ("error" in parsed) {
-    return NextResponse.json({ error: parsed.error }, { status: 400 });
+    return NextResponse.json({ success: false, error: parsed.error }, { status: 400 });
   }
 
   const [existing] = await db
@@ -34,7 +38,7 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     .where(eq(contactTypes.value, value))
     .limit(1);
   if (!existing) {
-    return NextResponse.json({ error: "Category not found." }, { status: 404 });
+    return NextResponse.json({ success: false, error: "Category not found." }, { status: 404 });
   }
 
   const { data } = parsed;
@@ -49,10 +53,13 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     .where(eq(contactTypes.value, value))
     .returning();
 
-  return NextResponse.json(type);
+  return NextResponse.json({ success: true, data: type });
 }
 
 export async function DELETE(request: NextRequest, ctx: Ctx) {
+  const csrfError = withCsrfProtection(request);
+  if (csrfError) return csrfError;
+
   if (!isAdmin(request)) return unauthorized();
 
   const { value } = await ctx.params;
@@ -62,7 +69,7 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
     .where(eq(contactTypes.value, value))
     .limit(1);
   if (!existing) {
-    return NextResponse.json({ error: "Category not found." }, { status: 404 });
+    return NextResponse.json({ success: false, error: "Category not found." }, { status: 404 });
   }
 
   const all = await db
@@ -71,7 +78,7 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
     .orderBy(asc(contactTypes.sortOrder), asc(contactTypes.label));
   if (all.length <= 1) {
     return NextResponse.json(
-      { error: "Cannot delete the last remaining category." },
+      { success: false, error: "Cannot delete the last remaining category." },
       { status: 400 }
     );
   }
@@ -92,5 +99,5 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
     await tx.delete(contactTypes).where(eq(contactTypes.value, value));
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ success: true, data: { ok: true } });
 }

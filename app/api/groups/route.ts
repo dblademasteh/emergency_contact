@@ -4,6 +4,7 @@ import { groups, contactTypes } from "@/db/schema";
 import { asc, eq } from "drizzle-orm";
 import { parseGroupInput } from "@/lib/groups";
 import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
+import { withCsrfProtection } from "@/lib/csrf";
 
 export async function GET(request: NextRequest) {
   const type = request.nextUrl.searchParams.get("type") ?? "";
@@ -12,13 +13,16 @@ export async function GET(request: NextRequest) {
     .from(groups)
     .where(type ? eq(groups.type, type) : undefined)
     .orderBy(asc(groups.sortOrder), asc(groups.name));
-  return NextResponse.json(rows);
+  return NextResponse.json({ success: true, data: rows });
 }
 
 export async function POST(request: NextRequest) {
+  const csrfError = withCsrfProtection(request);
+  if (csrfError) return csrfError;
+
   if (!isEditorToken(request.cookies.get(SESSION_COOKIE)?.value)) {
     return NextResponse.json(
-      { error: "Sign in required." },
+      { success: false, error: "Sign in required." },
       { status: 401 }
     );
   }
@@ -26,7 +30,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   const parsed = parseGroupInput(body);
   if ("error" in parsed) {
-    return NextResponse.json({ error: parsed.error }, { status: 400 });
+    return NextResponse.json({ success: false, error: parsed.error }, { status: 400 });
   }
 
   const { data } = parsed;
@@ -38,7 +42,7 @@ export async function POST(request: NextRequest) {
       .limit(1);
     if (!parent) {
       return NextResponse.json(
-        { error: "Parent group not found." },
+        { success: false, error: "Parent group not found." },
         { status: 400 }
       );
     }
@@ -51,7 +55,7 @@ export async function POST(request: NextRequest) {
     .limit(1);
   if (!typeInfo) {
     return NextResponse.json(
-      { error: "Category not found." },
+      { success: false, error: "Category not found." },
       { status: 400 }
     );
   }
@@ -65,5 +69,5 @@ export async function POST(request: NextRequest) {
     })
     .returning();
 
-  return NextResponse.json(group, { status: 201 });
+  return NextResponse.json({ success: true, data: group }, { status: 201 });
 }

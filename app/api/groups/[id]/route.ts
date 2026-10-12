@@ -4,6 +4,7 @@ import { groups, contactTypes } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { parseGroupInput } from "@/lib/groups";
 import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
+import { withCsrfProtection } from "@/lib/csrf";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -29,6 +30,9 @@ function isDescendant(
 }
 
 export async function PATCH(request: NextRequest, ctx: Ctx) {
+  const csrfError = withCsrfProtection(request);
+  if (csrfError) return csrfError;
+
   if (!isEditor(request)) return unauthorized();
 
   const { id } = await ctx.params;
@@ -97,6 +101,9 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
 }
 
 export async function DELETE(request: NextRequest, ctx: Ctx) {
+  const csrfError = withCsrfProtection(request);
+  if (csrfError) return csrfError;
+
   if (!isEditor(request)) return unauthorized();
 
   const { id } = await ctx.params;

@@ -24,6 +24,7 @@ import { TypeManager } from "@/components/type-manager";
 import { AdminBottomNav } from "@/components/admin-bottom-nav";
 import { HelpWidget } from "@/components/help-widget";
 import { cacheGet, cacheSet } from "@/lib/data-cache";
+import { AdminContentSkeleton, ContactListSkeleton } from "@/components/skeleton";
 import {
   ChevronLeftIcon,
   FolderIcon,
@@ -143,9 +144,9 @@ export default function Page() {
     if (!typesRes.ok) throw new Error(`Types request failed (${typesRes.status})`);
     const [contactData, groupData, typeData, homeData, fbData, bfpData, logoData, nameData] =
       await Promise.all([
-        contactsRes.json() as Promise<Contact[]>,
-        groupsRes.json() as Promise<Group[]>,
-        typesRes.json() as Promise<ContactType[]>,
+        contactsRes.json().then((j: { data?: Contact[] } | Contact[]) => (Array.isArray(j) ? j : j.data ?? [])),
+        groupsRes.json().then((j: { data?: Group[] } | Group[]) => (Array.isArray(j) ? j : j.data ?? [])),
+        typesRes.json().then((j: { data?: ContactType[] } | ContactType[]) => (Array.isArray(j) ? j : j.data ?? [])),
         homeRes.ok
           ? (homeRes.json() as Promise<{ image?: string | null }>)
           : Promise.resolve({ image: null }),
@@ -780,14 +781,7 @@ export default function Page() {
       )}
 
       {loading ? (
-        <div className="space-y-3">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-20 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
-            />
-          ))}
-        </div>
+        <ContactListSkeleton count={3} />
       ) : loadError ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
           {loadError} Pull to refresh, or reload the page.

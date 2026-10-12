@@ -16,6 +16,16 @@ export function readImageAsDataUrl(
   maxDimension = MAX_LOGO_DIMENSION
 ): Promise<string> {
   return new Promise((resolve, reject) => {
+    // Reject oversized files before even creating a canvas.
+    if (file.size > MAX_LOGO_SOURCE_SIZE) {
+      reject(
+        new Error(
+          `Image is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max is ${(MAX_LOGO_SOURCE_SIZE / 1024 / 1024).toFixed(0)}MB.`
+        )
+      );
+      return;
+    }
+
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
@@ -37,7 +47,20 @@ export function readImageAsDataUrl(
           .startsWith("data:image/webp")
           ? "image/webp"
           : "image/png";
-        resolve(canvas.toDataURL(mime, 0.85));
+        const dataUrl = canvas.toDataURL(mime, 0.85);
+
+        // Ensure the compressed output is still under a sane size.
+        // 512x512 WebP at 0.85 quality is typically < 100KB.
+        if (dataUrl.length > MAX_LOGO_SOURCE_SIZE) {
+          reject(
+            new Error(
+              "Compressed image is still too large. Try a smaller image."
+            )
+          );
+          return;
+        }
+
+        resolve(dataUrl);
       } catch (err) {
         reject(err);
       } finally {

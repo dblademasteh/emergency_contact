@@ -9,8 +9,19 @@ import {
   createSessionToken,
   sessionCookieOptions,
 } from "@/lib/auth";
+import { checkRateLimit, authRateLimiter } from "@/lib/rate-limiter";
 
 export async function POST(request: NextRequest) {
+  // Rate limiting for registration attempts
+  const rateLimit = checkRateLimit(request, authRateLimiter);
+  if (!rateLimit.allowed) {
+    const retryAfter = rateLimit.resetTime ? Math.ceil((rateLimit.resetTime - Date.now()) / 1000) : 60;
+    return NextResponse.json(
+      { success: false, error: "Too many attempts. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } }
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const raw =
     body && typeof body === "object" ? (body as Record<string, unknown>) : {};
@@ -21,29 +32,29 @@ export async function POST(request: NextRequest) {
   const password = typeof raw.password === "string" ? raw.password : "";
 
   if (!office) {
-    return NextResponse.json({ error: "Office is required." }, { status: 400 });
+    return NextResponse.json({ success: false, error: "Office is required." }, { status: 400 });
   }
   if (office.length > 100) {
     return NextResponse.json(
-      { error: "Office is too long (max 100 characters)." },
+      { success: false, error: "Office is too long (max 100 characters)." },
       { status: 400 }
     );
   }
   if (!unitCode) {
     return NextResponse.json(
-      { error: "Unit code is required." },
+      { success: false, error: "Unit code is required." },
       { status: 400 }
     );
   }
   if (unitCode.length > 50) {
     return NextResponse.json(
-      { error: "Unit code is too long (max 50 characters)." },
+      { success: false, error: "Unit code is too long (max 50 characters)." },
       { status: 400 }
     );
   }
   if (password.length < 6) {
     return NextResponse.json(
-      { error: "Password must be at least 6 characters." },
+      { success: false, error: "Password must be at least 6 characters." },
       { status: 400 }
     );
   }
@@ -55,7 +66,7 @@ export async function POST(request: NextRequest) {
     .limit(1);
   if (existing) {
     return NextResponse.json(
-      { error: "That unit code is already registered." },
+      { success: false, error: "That unit code is already registered." },
       { status: 409 }
     );
   }
@@ -73,5 +84,5 @@ export async function POST(request: NextRequest) {
     sessionCookieOptions()
   );
 
-  return NextResponse.json({ ok: true, role: "user" }, { status: 201 });
+  return NextResponse.json({ success: true, data: { role: "user" } }, { status: 201 });
 }

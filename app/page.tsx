@@ -20,6 +20,7 @@ import { GuestBottomNav } from "@/components/guest-bottom-nav";
 import { OfflineBanner } from "@/components/offline-banner";
 import { HelpWidget } from "@/components/help-widget";
 import { SearchIcon } from "@/components/icons";
+import { ContactListSkeleton } from "@/components/skeleton";
 
 type Filter = string | "ALL";
 
@@ -94,9 +95,9 @@ export default function PublicHome() {
         if (!groupsRes.ok) throw new Error("Failed to load groups");
         if (!typesRes.ok) throw new Error("Failed to load categories");
         return Promise.all([
-          contactsRes.json() as Promise<Contact[]>,
-          groupsRes.json() as Promise<Group[]>,
-          typesRes.json() as Promise<ContactType[]>,
+          contactsRes.json().then((j: { data?: Contact[] } | Contact[]) => (Array.isArray(j) ? j : j.data ?? [])),
+          groupsRes.json().then((j: { data?: Group[] } | Group[]) => (Array.isArray(j) ? j : j.data ?? [])),
+          typesRes.json().then((j: { data?: ContactType[] } | ContactType[]) => (Array.isArray(j) ? j : j.data ?? [])),
           homeRes.ok ? (homeRes.json() as Promise<{ image?: string | null }>) : Promise.resolve({ image: null }),
           fbRes.ok ? (fbRes.json() as Promise<{ url?: string | null }>) : Promise.resolve({ url: null }),
           bfpRes.ok ? (bfpRes.json() as Promise<{ url?: string | null }>) : Promise.resolve({ url: null }),
@@ -337,14 +338,7 @@ export default function PublicHome() {
       )}
 
       {loading ? (
-        <div className="space-y-3">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-20 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
-            />
-          ))}
-        </div>
+        <ContactListSkeleton count={3} />
       ) : loadError ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
           {loadError} Pull to refresh, or reload the page.

@@ -13,6 +13,19 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // Add security-conscious linting rules
+  {
+    rules: {
+      // Security-focused rules
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "prefer-const": "error",
+      "no-var": "error",
+      // Prevent potential XSS in dangerouslySetInnerHTML
+      "react/no-danger": "error",
+      // Warn about using dangerouslySetInnerHTML with dynamic content
+      "react/no-danger-with-children": "error",
+    },
+  },
 ]);
 
 export default eslintConfig;

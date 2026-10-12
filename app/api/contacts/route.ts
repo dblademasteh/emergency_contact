@@ -4,6 +4,7 @@ import { contacts, groups, contactTypes } from "@/db/schema";
 import { and, asc, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { parseContactInput } from "@/lib/contacts";
 import { SESSION_COOKIE, isEditorToken } from "@/lib/auth";
+import { withCsrfProtection } from "@/lib/csrf";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -30,13 +31,17 @@ export async function GET(request: NextRequest) {
     .where(conditions.length ? and(...conditions) : undefined)
     .orderBy(desc(contacts.isPrimary), asc(contacts.sortOrder), asc(contacts.name));
 
-  return NextResponse.json(rows);
+  return NextResponse.json({ success: true, data: rows });
 }
 
 export async function POST(request: NextRequest) {
+  // CSRF protection: reject requests without a valid CSRF token
+  const csrfError = withCsrfProtection(request);
+  if (csrfError) return csrfError;
+
   if (!isEditorToken(request.cookies.get(SESSION_COOKIE)?.value)) {
     return NextResponse.json(
-      { error: "Sign in required." },
+      { success: false, error: "Sign in required." },
       { status: 401 }
     );
   }
@@ -44,7 +49,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   const parsed = parseContactInput(body);
   if ("error" in parsed) {
-    return NextResponse.json({ error: parsed.error }, { status: 400 });
+    return NextResponse.json({ success: false, error: parsed.error }, { status: 400 });
   }
 
   const { data } = parsed;
@@ -57,7 +62,7 @@ export async function POST(request: NextRequest) {
       .limit(1);
     if (!group) {
       return NextResponse.json(
-        { error: "Group not found." },
+        { success: false, error: "Group not found." },
         { status: 400 }
       );
     }
@@ -70,7 +75,7 @@ export async function POST(request: NextRequest) {
       .limit(1);
     if (!typeInfo) {
       return NextResponse.json(
-        { error: "Category not found." },
+        { success: false, error: "Category not found." },
         { status: 400 }
       );
     }
@@ -91,5 +96,5 @@ export async function POST(request: NextRequest) {
     })
     .returning();
 
-  return NextResponse.json(contact, { status: 201 });
+  return NextResponse.json({ success: true, data: contact }, { status: 201 });
 }

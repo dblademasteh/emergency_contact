@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCsrfFetch } from "@/lib/use-csrf-fetch";
 
 export function LoginForm() {
   const router = useRouter();
+  const { csrfFetch, tokenLoaded } = useCsrfFetch();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -16,13 +18,12 @@ export function LoginForm() {
     setSubmitting(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await csrfFetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ identifier, password }),
       });
       const data = await res.json();
-      if (!res.ok) {
+      if (!res.ok || !data.success) {
         setError(data.error ?? "Sign in failed.");
         setSubmitting(false);
         return;

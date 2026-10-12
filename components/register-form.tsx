@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCsrfFetch } from "@/lib/use-csrf-fetch";
 
 export function RegisterForm() {
   const router = useRouter();
+  const { csrfFetch } = useCsrfFetch();
   const [office, setOffice] = useState("");
   const [unitCode, setUnitCode] = useState("");
   const [password, setPassword] = useState("");
@@ -17,13 +19,12 @@ export function RegisterForm() {
     setSubmitting(true);
 
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await csrfFetch("/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ office, unitCode, password }),
       });
       const data = await res.json();
-      if (!res.ok) {
+      if (!res.ok || !data.success) {
         setError(data.error ?? "Couldn't create the account.");
         setSubmitting(false);
         return;

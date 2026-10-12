@@ -14,6 +14,7 @@ import { GroupCard } from "@/components/group-card";
 import { GroupForm } from "@/components/group-form";
 import { TypeManager } from "@/components/type-manager";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { AdminContentSkeleton } from "@/components/skeleton";
 import {
   PlusIcon,
   PillIcon,
@@ -96,9 +97,9 @@ export function AdminContentManager() {
     if (!groupsRes.ok) throw new Error("Failed to load groups");
     if (!typesRes.ok) throw new Error("Failed to load categories");
     const [contactData, groupData, typeData] = await Promise.all([
-      contactsRes.json() as Promise<Contact[]>,
-      groupsRes.json() as Promise<Group[]>,
-      typesRes.json() as Promise<ContactType[]>,
+      contactsRes.json().then((j: { data?: Contact[] } | Contact[]) => (Array.isArray(j) ? j : j.data ?? [])),
+      groupsRes.json().then((j: { data?: Group[] } | Group[]) => (Array.isArray(j) ? j : j.data ?? [])),
+      typesRes.json().then((j: { data?: ContactType[] } | ContactType[]) => (Array.isArray(j) ? j : j.data ?? [])),
     ]);
     setContacts(sortContacts(contactData));
     setGroups(sortGroups(groupData));
@@ -504,13 +505,7 @@ export function AdminContentManager() {
   }, [quickName, quickPhone, contactFilter, openGroupId, loadAll]);
 
   if (loading) {
-    return (
-      <div className="space-y-3">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-20 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900" />
-        ))}
-      </div>
-    );
+    return <AdminContentSkeleton />;
   }
 
   if (error) {
