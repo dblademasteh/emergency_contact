@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Contact } from "@/lib/contacts";
 import type { Group } from "@/lib/groups";
@@ -15,11 +15,13 @@ import { EmergencyBanner } from "@/components/emergency-banner";
 import { GroupCard } from "@/components/group-card";
 import { HomeImage } from "@/components/home-image";
 import { FacebookFeed } from "@/components/facebook-feed";
+import { FaqPanel } from "@/components/faq-panel";
 import { AppBar } from "@/components/app-bar";
-import { GuestBottomNav } from "@/components/guest-bottom-nav";
+import { GuestBottomNav, type GuestTab } from "@/components/guest-bottom-nav";
 import { OfflineBanner } from "@/components/offline-banner";
 import { HelpWidget } from "@/components/help-widget";
-import { SearchIcon } from "@/components/icons";
+import { PhoneFrame } from "@/components/phone-frame";
+import { PhoneIcon, SearchIcon } from "@/components/icons";
 import { ContactListSkeleton } from "@/components/skeleton";
 
 type Filter = string | "ALL";
@@ -63,6 +65,7 @@ export default function PublicHome() {
   const [currentGroupId, setCurrentGroupId] = useState<string | null>(null);
   const [showAllTypes, setShowAllTypes] = useState(true);
   const [showAllContacts, setShowAllContacts] = useState(false);
+  const [activeTab, setActiveTab] = useState<GuestTab>("home");
 
   useEffect(() => {
     let cancelled = false;
@@ -180,8 +183,33 @@ export default function PublicHome() {
 
   const primaryCount = contacts.filter((c) => c.isPrimary).length;
   const emergencyNumber = contacts.find((c) => c.isPrimary)?.phone ?? null;
+  const emergencyTel = (emergencyNumber ?? "911").replace(/\s+/g, "");
+
+  const scrollToId = useCallback((id: string | null) => {
+    if (id === null) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    requestAnimationFrame(() => {
+      document
+        .getElementById(id)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
+
+  const handleTabChange = useCallback(
+    (tab: GuestTab) => {
+      setActiveTab(tab);
+      if (tab === "home") scrollToId(null);
+      else if (tab === "hotlines") scrollToId("hotlines");
+      else if (tab === "tips") scrollToId("safety-tips");
+      else scrollToId("more");
+    },
+    [scrollToId]
+  );
 
   const focusSearch = () => {
+    setActiveTab("home");
     const input = document.getElementById("contact-search");
     input?.scrollIntoView({ behavior: "smooth", block: "center" });
     (input as HTMLInputElement | null)?.focus({ preventScroll: true });
@@ -189,7 +217,17 @@ export default function PublicHome() {
 
   const openGroup = (id: string) => {
     setQuery("");
+    setShowAllContacts(false);
     setCurrentGroupId(id);
+    setActiveTab("hotlines");
+    scrollToId("hotlines");
+  };
+
+  const goHomeGroups = () => {
+    setQuery("");
+    setFilter("ALL");
+    setShowAllContacts(false);
+    setCurrentGroupId(null);
   };
 
   const chipClass = (active: boolean, activeCls?: string) =>
@@ -201,191 +239,82 @@ export default function PublicHome() {
     }`;
 
   const searching = query.trim().length > 0;
-  const isHome = path.length === 0 && filter === "ALL";
 
   return (
-    <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-4 pb-32 pt-4">
-      <AppBar
-        appLogo={appLogo}
-        appName={appName}
-        subtitle={
-          primaryCount > 0
-            ? `${primaryCount} pinned · ${contacts.length} total`
-            : `${contacts.length} contacts saved`
-        }
-        showSignIn
-      />
+    <PhoneFrame>
+      <main
+        id="main"
+        className="w-full flex-1 px-4 pb-36 pt-4"
+      >
+        <div id="top" className="scroll-mt-20">
+          <AppBar
+            appLogo={appLogo}
+            appName={appName}
+            subtitle={
+              primaryCount > 0
+                ? `${primaryCount} pinned · ${contacts.length} total`
+                : `${contacts.length} contacts saved`
+            }
+            showSignIn
+          />
+        </div>
 
-      <HomeImage image={homeImage} isAdmin={false} onChanged={() => {}} />
+        {/* Hero fold */}
+        <HomeImage image={homeImage} isAdmin={false} onChanged={() => {}} />
 
-      <OfflineBanner />
+        <OfflineBanner />
 
-      <EmergencyBanner />
+        {/* Prioritized action — front and center right below the hero */}
+        <EmergencyBanner />
 
-      <div className="relative mb-4 mt-2">
-        <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-        <input
-          id="contact-search"
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search all contacts…"
-          aria-label="Search contacts"
-          className="w-full rounded-2xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-rose-500 dark:focus:ring-rose-500/20"
-        />
-      </div>
+        <div className="relative mb-4 mt-2">
+          <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            id="contact-search"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search all contacts…"
+            aria-label="Search contacts"
+            className="min-h-[48px] w-full rounded-2xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-rose-500 dark:focus:ring-rose-500/20"
+          />
+        </div>
 
-      <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1">
-        {types.slice(0, showAllTypes ? undefined : 3).map((t) => {
-          const Icon = categoryIcon(t.icon);
-          const activeCls = categoryStyle(t.color).active;
-          return (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => setFilter(filter === t.value ? "ALL" : t.value)}
-              className={chipClass(filter === t.value, activeCls)}
-            >
-              <Icon className="h-4 w-4" />
-              {t.label}
-            </button>
-          );
-        })}
-        {types.length > 3 && (
-          <button
-            type="button"
-            onClick={() => setShowAllTypes(!showAllTypes)}
-            className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-          >
-            {showAllTypes ? "Less" : `+${types.length - 3}`}
-          </button>
-        )}
-      </div>
-
-      {searching && !loading && (
-        <>
-          {visibleContacts.length === 0 ? (
-            <div className="mb-6 rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
-              <p className="text-slate-500 dark:text-slate-400">No contacts match your search.</p>
-            </div>
-          ) : (
-            <ul className="mb-6 space-y-3">
-              {(showAllContacts ? visibleContacts : visibleContacts.slice(0, 3)).map((contact) => (
-                <li key={contact.id}>
-                  <ContactCard
-                    contact={contact}
-                    types={types}
-                    groupName={contact.groupId ? groupById.get(contact.groupId)?.name : undefined}
-                    onEdit={() => {}}
-                    onDelete={() => {}}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-          {visibleContacts.length > 3 && (
-            <button
-              type="button"
-              onClick={() => setShowAllContacts(!showAllContacts)}
-              className="mb-6 w-full rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              {showAllContacts ? "Show less" : `Show all ${visibleContacts.length} contacts`}
-            </button>
-          )}
-        </>
-      )}
-
-      {isHome && (
-        <FacebookFeed
-          pageUrl={facebookPageUrl}
-          bfpSiteUrl={bfpSiteUrl}
-          isAdmin={false}
-          onChanged={() => {}}
-          onBfpChanged={() => {}}
-        />
-      )}
-
-      {!searching && path.length > 0 && (
-        <div className="mb-6 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setCurrentGroupId(path.length > 1 ? path[path.length - 2].id : null)}
-            className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-          >
-            ← Back
-          </button>
-          {path.slice(-2).map((group, i) => {
-            const isLast = i === path.length - 1;
-            return isLast ? (
-              <span
-                key={group.id}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-900 bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white shadow-sm"
-              >
-                {group.name}
-              </span>
-            ) : (
+        <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1">
+          {types.slice(0, showAllTypes ? undefined : 3).map((t) => {
+            const Icon = categoryIcon(t.icon);
+            const activeCls = categoryStyle(t.color).active;
+            return (
               <button
-                key={group.id}
+                key={t.value}
                 type="button"
-                onClick={() => openGroup(group.id)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                onClick={() => setFilter(filter === t.value ? "ALL" : t.value)}
+                className={chipClass(filter === t.value, activeCls)}
               >
-                {group.name}
+                <Icon className="h-4 w-4" />
+                {t.label}
               </button>
             );
           })}
-        </div>
-      )}
-
-      {loading ? (
-        <ContactListSkeleton count={3} />
-      ) : loadError ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
-          {loadError} Pull to refresh, or reload the page.
-        </div>
-      ) : searching ? null : (
-        <>
-          {childGroups.length > 0 && !isHome && (
-            <section className="mb-8" aria-label="Groups">
-              <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                <span
-                  aria-hidden="true"
-                  className="h-2 w-2 rounded-full bg-linear-to-br from-rose-500 to-red-600"
-                />
-                {path.length === 0 ? "Top level" : "Sub-groups"}
-              </h2>
-              <ul className="space-y-3">
-                {childGroups.map((group) => (
-                  <li key={group.id}>
-                    <GroupCard
-                      name={group.name}
-                      type={group.type}
-                      types={types}
-                      logoUrl={group.logoUrl}
-                      contactCount={directCountByGroup.get(group.id) ?? 0}
-                      childCount={childrenByParent.get(group.id)?.length ?? 0}
-                      onOpen={() => openGroup(group.id)}
-                      onEdit={() => {}}
-                      onDelete={() => {}}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </section>
+          {types.length > 3 && (
+            <button
+              type="button"
+              onClick={() => setShowAllTypes(!showAllTypes)}
+              className="inline-flex min-h-[36px] items-center gap-1 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              {showAllTypes ? "Less" : `+${types.length - 3}`}
+            </button>
           )}
+        </div>
 
-          {visibleContacts.length > 0 && !isHome && (
-            <section aria-label="Contacts">
-              {childGroups.length > 0 && (
-                <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                  <span
-                    aria-hidden="true"
-                    className="h-2 w-2 rounded-full bg-linear-to-br from-sky-500 to-blue-600"
-                  />
-                  Contacts
-                </h2>
-              )}
-              <ul className="space-y-3">
+        {searching && !loading && (
+          <>
+            {visibleContacts.length === 0 ? (
+              <div className="mb-6 rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
+                <p className="text-slate-500 dark:text-slate-400">No contacts match your search.</p>
+              </div>
+            ) : (
+              <ul className="mb-6 space-y-3">
                 {(showAllContacts ? visibleContacts : visibleContacts.slice(0, 3)).map((contact) => (
                   <li key={contact.id}>
                     <ContactCard
@@ -398,31 +327,233 @@ export default function PublicHome() {
                   </li>
                 ))}
               </ul>
-              {visibleContacts.length > 3 && (
-                <button
-                  type="button"
-                  onClick={() => setShowAllContacts(!showAllContacts)}
-                  className="mt-3 w-full rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            )}
+            {visibleContacts.length > 3 && (
+              <button
+                type="button"
+                onClick={() => setShowAllContacts(!showAllContacts)}
+                className="mb-6 min-h-[44px] w-full rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                {showAllContacts ? "Show less" : `Show all ${visibleContacts.length} contacts`}
+              </button>
+            )}
+          </>
+        )}
+
+        {!searching && path.length > 0 && (
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentGroupId(path.length > 1 ? path[path.length - 2].id : null)}
+              className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              ← Back
+            </button>
+            {path.slice(-2).map((group, i) => {
+              const isLast = i === path.length - 1;
+              return isLast ? (
+                <span
+                  key={group.id}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-900 bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white shadow-sm"
                 >
-                  {showAllContacts ? "Show less" : `Show all ${visibleContacts.length} contacts`}
+                  {group.name}
+                </span>
+              ) : (
+                <button
+                  key={group.id}
+                  type="button"
+                  onClick={() => openGroup(group.id)}
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                >
+                  {group.name}
                 </button>
-              )}
-            </section>
-          )}
+              );
+            })}
+          </div>
+        )}
 
-          {childGroups.length === 0 && visibleContacts.length === 0 && !isHome && (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
-              <p className="text-slate-500 dark:text-slate-400">
-                {path.length === 0 ? "No groups or contacts yet." : "This group is empty."}
-              </p>
+        {/* ── Agency hotlines: vertical card stack with touch arrows ── */}
+        <section id="hotlines" aria-label="Agency hotlines" className="mb-8 scroll-mt-20">
+          <div className="mb-3 flex items-end justify-between gap-2">
+            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 rounded-full bg-linear-to-br from-rose-500 to-red-600"
+              />
+              {path.length === 0 ? "Agency hotlines" : "Sub-groups"}
+            </h2>
+            {path.length === 0 && (
+              <button
+                type="button"
+                onClick={goHomeGroups}
+                className="text-xs font-semibold text-rose-600 hover:underline dark:text-rose-400"
+              >
+                {childGroups.length} agencies
+              </button>
+            )}
+          </div>
+          <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+            BFP · PNP · NDRRMC · DOH — tap the arrow to open a hotline.
+          </p>
+
+          {loading ? (
+            <ContactListSkeleton count={3} />
+          ) : loadError ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+              {loadError} Pull to refresh, or reload the page.
             </div>
+          ) : (
+            <>
+              {childGroups.length > 0 && (
+                <ul className="space-y-3">
+                  {childGroups.map((group) => (
+                    <li key={group.id}>
+                      <GroupCard
+                        name={group.name}
+                        type={group.type}
+                        types={types}
+                        logoUrl={group.logoUrl}
+                        contactCount={directCountByGroup.get(group.id) ?? 0}
+                        childCount={childrenByParent.get(group.id)?.length ?? 0}
+                        onOpen={() => openGroup(group.id)}
+                        onEdit={() => {}}
+                        onDelete={() => {}}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {visibleContacts.length > 0 && (
+                <div className={childGroups.length > 0 ? "mt-6" : undefined}>
+                  {childGroups.length > 0 && (
+                    <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                      <span
+                        aria-hidden="true"
+                        className="h-2 w-2 rounded-full bg-linear-to-br from-sky-500 to-blue-600"
+                      />
+                      {path.length === 0 ? "Direct lines" : "Contacts"}
+                    </h3>
+                  )}
+                  <ul className="space-y-3">
+                    {(showAllContacts ? visibleContacts : visibleContacts.slice(0, 3)).map((contact) => (
+                      <li key={contact.id}>
+                        <ContactCard
+                          contact={contact}
+                          types={types}
+                          groupName={contact.groupId ? groupById.get(contact.groupId)?.name : undefined}
+                          onEdit={() => {}}
+                          onDelete={() => {}}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                  {visibleContacts.length > 3 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllContacts(!showAllContacts)}
+                      className="mt-3 min-h-[44px] w-full rounded-full border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                    >
+                      {showAllContacts ? "Show less" : `Show all ${visibleContacts.length} contacts`}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {childGroups.length === 0 && visibleContacts.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
+                  <p className="text-slate-500 dark:text-slate-400">
+                    {path.length === 0 ? "No groups or contacts yet." : "This group is empty."}
+                  </p>
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+        </section>
 
-      <HelpWidget isAdmin={false} />
+        {/* ── Safety tips ── */}
+        <section id="safety-tips" aria-label="Safety tips" className="mb-8 scroll-mt-20">
+          <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 rounded-full bg-linear-to-br from-emerald-500 to-teal-600"
+            />
+            Safety tips
+          </h2>
+          <FacebookFeed
+            pageUrl={facebookPageUrl}
+            bfpSiteUrl={bfpSiteUrl}
+            isAdmin={false}
+            onChanged={() => {}}
+            onBfpChanged={() => {}}
+          />
+          <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h3 className="mb-3 text-sm font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+              What to know before you call
+            </h3>
+            <FaqPanel isAdmin={false} />
+          </div>
+        </section>
 
-      <GuestBottomNav emergencyNumber={emergencyNumber} onSearch={focusSearch} />
-    </main>
+        {/* ── More: thumb-friendly quick actions ── */}
+        <section id="more" aria-label="More actions" className="mb-8 scroll-mt-20">
+          <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 rounded-full bg-linear-to-br from-slate-500 to-slate-700"
+            />
+            More
+          </h2>
+          <div className="space-y-3">
+            <a
+              href={`tel:${emergencyTel}`}
+              className="flex min-h-[60px] items-center gap-3 rounded-2xl bg-linear-to-br from-rose-600 via-red-600 to-red-800 p-4 text-white shadow-lg shadow-red-900/25 transition hover:brightness-110 active:scale-[0.99]"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25">
+                <PhoneIcon className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-extrabold">Call {emergencyNumber ?? "911"}</span>
+                <span className="block text-xs text-red-100">Police · Fire · Medical — 24/7</span>
+              </span>
+              <span aria-hidden="true" className="text-xl font-black">›</span>
+            </a>
+            <button
+              type="button"
+              onClick={focusSearch}
+              className="flex min-h-[60px] w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-slate-300 hover:shadow-md active:scale-[0.99] dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                <SearchIcon className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold text-slate-900 dark:text-slate-100">Search contacts</span>
+                <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
+                  {contacts.length} saved · {groups.length} groups
+                </span>
+              </span>
+              <span aria-hidden="true" className="text-xl font-black text-slate-300 dark:text-slate-600">›</span>
+            </button>
+            <a
+              href="/login"
+              className="flex min-h-[60px] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-rose-200 hover:shadow-md active:scale-[0.99] dark:border-slate-800 dark:bg-slate-900 dark:hover:border-rose-500/40"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300">
+                <PhoneIcon className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold text-slate-900 dark:text-slate-100">Sign in</span>
+                <span className="block text-xs text-slate-500 dark:text-slate-400">Manage contacts and groups</span>
+              </span>
+              <span aria-hidden="true" className="text-xl font-black text-slate-300 dark:text-slate-600">›</span>
+            </a>
+          </div>
+        </section>
+
+        <HelpWidget isAdmin={false} />
+
+        <GuestBottomNav activeTab={activeTab} onTabChange={handleTabChange} emergencyNumber={emergencyNumber} onSearch={focusSearch} />
+      </main>
+    </PhoneFrame>
   );
 }
