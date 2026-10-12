@@ -75,6 +75,7 @@ export default async function AdminSettingsPage() {
         appName={byKey.get("appName") ?? null}
         appLogo={byKey.get("appLogo") ?? null}
         homeImage={byKey.get("homeImage") ?? null}
+        bannerImage={byKey.get("bannerImage") ?? null}
         homeContentImage={byKey.get("homeContentImage") ?? null}
         homeContentLinks={parseLinks(byKey.get("homeContentLinks") ?? null)}
         facebookPageUrl={byKey.get("facebookPageUrl") ?? null}

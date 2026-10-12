@@ -12,6 +12,7 @@ type AdminSettingsProps = {
   appName: string | null;
   appLogo: string | null;
   homeImage: string | null;
+  bannerImage: string | null;
   homeContentImage: string | null;
   homeContentLinks: HomeContentLink[];
   facebookPageUrl: string | null;
@@ -46,6 +47,7 @@ export function AdminSettings({
   appName,
   appLogo,
   homeImage,
+  bannerImage,
   homeContentImage,
   homeContentLinks,
   facebookPageUrl,
@@ -54,6 +56,7 @@ export function AdminSettings({
   const [name, setName] = useState<string | null>(appName);
   const [logo, setLogo] = useState<string | null>(appLogo);
   const [homeImg, setHomeImg] = useState<string | null>(homeImage);
+  const [bannerImg, setBannerImg] = useState<string | null>(bannerImage);
   const [contentImg, setContentImg] = useState<string | null>(homeContentImage);
   const [contentLinks, setContentLinks] =
     useState<HomeContentLink[]>(homeContentLinks);
@@ -97,6 +100,20 @@ export function AdminSettings({
             linksEndpoint="/api/settings/home-content-links"
           />
         </div>
+      </Section>
+
+      <Section
+        title="Emergency banner"
+        description="The image shown inside the red 911 call banner."
+      >
+        <HomeImage
+          image={bannerImg}
+          isAdmin
+          onChanged={setBannerImg}
+          endpoint="/api/settings/banner-image"
+          placeholder="Add a 911 banner image"
+          alt="911 banner image"
+        />
       </Section>
 
       <Section

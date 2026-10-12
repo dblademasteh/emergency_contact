@@ -62,6 +62,7 @@ export default function Page() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [types, setTypes] = useState<ContactType[]>([]);
   const [homeImage, setHomeImage] = useState<string | null>(null);
+  const [bannerImage, setBannerImage] = useState<string | null>(null);
   const [facebookPageUrl, setFacebookPageUrl] = useState<string | null>(null);
   const [bfpSiteUrl, setBfpSiteUrl] = useState<string | null>(null);
   const [appLogo, setAppLogo] = useState<string | null>(null);
@@ -110,15 +111,17 @@ export default function Page() {
       groups: Group[];
       types: ContactType[];
       homeImage: string | null;
+      bannerImage: string | null;
       facebookPageUrl: string | null;
       bfpSiteUrl: string | null;
       appLogo: string | null;
       appName: string | null;
     }) => {
-      setContacts(sortContacts(data.contacts));
-      setGroups(sortGroups(data.groups));
-      setTypes(sortTypes(data.types));
-      setHomeImage(data.homeImage);
+    setContacts(sortContacts(data.contacts));
+    setGroups(sortGroups(data.groups));
+    setTypes(sortTypes(data.types));
+    setHomeImage(data.homeImage);
+    setBannerImage(data.bannerImage ?? null);
       setFacebookPageUrl(data.facebookPageUrl);
       setBfpSiteUrl(data.bfpSiteUrl);
       setAppLogo(data.appLogo);
@@ -128,12 +131,13 @@ export default function Page() {
   );
 
   const fetchAllData = useCallback(async () => {
-    const [contactsRes, groupsRes, typesRes, homeRes, fbRes, bfpRes, logoRes, nameRes] =
+    const [contactsRes, groupsRes, typesRes, homeRes, bannerRes, fbRes, bfpRes, logoRes, nameRes] =
       await Promise.all([
         fetch("/api/contacts"),
         fetch("/api/groups"),
         fetch("/api/types"),
         fetch("/api/settings/home-image"),
+        fetch("/api/settings/banner-image"),
         fetch("/api/settings/facebook-page"),
         fetch("/api/settings/bfp-site"),
         fetch("/api/settings/app-logo"),
@@ -142,13 +146,16 @@ export default function Page() {
     if (!contactsRes.ok) throw new Error(`Contacts request failed (${contactsRes.status})`);
     if (!groupsRes.ok) throw new Error(`Groups request failed (${groupsRes.status})`);
     if (!typesRes.ok) throw new Error(`Types request failed (${typesRes.status})`);
-    const [contactData, groupData, typeData, homeData, fbData, bfpData, logoData, nameData] =
+    const [contactData, groupData, typeData, homeData, bannerData, fbData, bfpData, logoData, nameData] =
       await Promise.all([
         contactsRes.json().then((j: { data?: Contact[] } | Contact[]) => (Array.isArray(j) ? j : j.data ?? [])),
         groupsRes.json().then((j: { data?: Group[] } | Group[]) => (Array.isArray(j) ? j : j.data ?? [])),
         typesRes.json().then((j: { data?: ContactType[] } | ContactType[]) => (Array.isArray(j) ? j : j.data ?? [])),
         homeRes.ok
           ? (homeRes.json() as Promise<{ image?: string | null }>)
+          : Promise.resolve({ image: null }),
+        bannerRes.ok
+          ? (bannerRes.json() as Promise<{ image?: string | null }>)
           : Promise.resolve({ image: null }),
         fbRes.ok
           ? (fbRes.json() as Promise<{ url?: string | null }>)
@@ -168,6 +175,7 @@ export default function Page() {
       groups: groupData,
       types: typeData,
       homeImage: homeData?.image ?? null,
+      bannerImage: bannerData?.image ?? null,
       facebookPageUrl: fbData?.url ?? null,
       bfpSiteUrl: bfpData?.url ?? null,
       appLogo: logoData?.logo ?? null,
@@ -190,6 +198,7 @@ export default function Page() {
       groups: Group[];
       types: ContactType[];
       homeImage: string | null;
+      bannerImage: string | null;
       facebookPageUrl: string | null;
       bfpSiteUrl: string | null;
       appLogo: string | null;
@@ -657,7 +666,11 @@ export default function Page() {
 
       <OfflineBanner />
 
-      <EmergencyBanner />
+      <EmergencyBanner
+        image={bannerImage}
+        isAdmin={isAdmin}
+        onChanged={setBannerImage}
+      />
 
       <div className="relative mb-4 mt-2">
         <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

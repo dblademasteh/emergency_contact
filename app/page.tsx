@@ -16,11 +16,10 @@ import { GroupCard } from "@/components/group-card";
 import { HomeImage } from "@/components/home-image";
 import { FacebookFeed } from "@/components/facebook-feed";
 import { FaqPanel } from "@/components/faq-panel";
-import { AppBar } from "@/components/app-bar";
+import { UserHeader } from "@/components/user-header";
 import { GuestBottomNav, type GuestTab } from "@/components/guest-bottom-nav";
 import { OfflineBanner } from "@/components/offline-banner";
 import { HelpWidget } from "@/components/help-widget";
-import { PhoneFrame } from "@/components/phone-frame";
 import { PhoneIcon, SearchIcon } from "@/components/icons";
 import { ContactListSkeleton } from "@/components/skeleton";
 
@@ -54,16 +53,16 @@ export default function PublicHome() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [types, setTypes] = useState<ContactType[]>([]);
   const [homeImage, setHomeImage] = useState<string | null>(null);
+  const [bannerImage, setBannerImage] = useState<string | null>(null);
   const [facebookPageUrl, setFacebookPageUrl] = useState<string | null>(null);
   const [bfpSiteUrl, setBfpSiteUrl] = useState<string | null>(null);
   const [appLogo, setAppLogo] = useState<string | null>(null);
-  const [appName, setAppName] = useState<string | null>(null);
+  const [, setAppName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("ALL");
   const [currentGroupId, setCurrentGroupId] = useState<string | null>(null);
-  const [showAllTypes, setShowAllTypes] = useState(true);
   const [showAllContacts, setShowAllContacts] = useState(false);
   const [activeTab, setActiveTab] = useState<GuestTab>("home");
 
@@ -88,12 +87,13 @@ export default function PublicHome() {
       fetch("/api/groups"),
       fetch("/api/types"),
       fetch("/api/settings/home-image"),
+      fetch("/api/settings/banner-image"),
       fetch("/api/settings/facebook-page"),
       fetch("/api/settings/bfp-site"),
       fetch("/api/settings/app-logo"),
       fetch("/api/settings/app-name"),
     ])
-      .then(([contactsRes, groupsRes, typesRes, homeRes, fbRes, bfpRes, logoRes, nameRes]) => {
+      .then(([contactsRes, groupsRes, typesRes, homeRes, bannerRes, fbRes, bfpRes, logoRes, nameRes]) => {
         if (!contactsRes.ok) throw new Error("Failed to load contacts");
         if (!groupsRes.ok) throw new Error("Failed to load groups");
         if (!typesRes.ok) throw new Error("Failed to load categories");
@@ -102,18 +102,20 @@ export default function PublicHome() {
           groupsRes.json().then((j: { data?: Group[] } | Group[]) => (Array.isArray(j) ? j : j.data ?? [])),
           typesRes.json().then((j: { data?: ContactType[] } | ContactType[]) => (Array.isArray(j) ? j : j.data ?? [])),
           homeRes.ok ? (homeRes.json() as Promise<{ image?: string | null }>) : Promise.resolve({ image: null }),
+          bannerRes.ok ? (bannerRes.json() as Promise<{ image?: string | null }>) : Promise.resolve({ image: null }),
           fbRes.ok ? (fbRes.json() as Promise<{ url?: string | null }>) : Promise.resolve({ url: null }),
           bfpRes.ok ? (bfpRes.json() as Promise<{ url?: string | null }>) : Promise.resolve({ url: null }),
           logoRes.ok ? (logoRes.json() as Promise<{ logo?: string | null }>) : Promise.resolve({ logo: null }),
           nameRes.ok ? (nameRes.json() as Promise<{ name?: string | null }>) : Promise.resolve({ name: null }),
         ]);
       })
-      .then(([contactData, groupData, typeData, homeData, fbData, bfpData, logoData, nameData]) => {
+      .then(([contactData, groupData, typeData, homeData, bannerData, fbData, bfpData, logoData, nameData]) => {
         if (cancelled) return;
         setContacts(sortContacts(contactData));
         setGroups(sortGroups(groupData));
         setTypes(sortTypes(typeData));
         setHomeImage(homeData?.image ?? null);
+        setBannerImage(bannerData?.image ?? null);
         setFacebookPageUrl(fbData?.url ?? null);
         setBfpSiteUrl(bfpData?.url ?? null);
         setAppLogo(logoData?.logo ?? null);
@@ -181,7 +183,6 @@ export default function PublicHome() {
     return map;
   }, [contacts]);
 
-  const primaryCount = contacts.filter((c) => c.isPrimary).length;
   const emergencyNumber = contacts.find((c) => c.isPrimary)?.phone ?? null;
   const emergencyTel = (emergencyNumber ?? "911").replace(/\s+/g, "");
 
@@ -241,21 +242,15 @@ export default function PublicHome() {
   const searching = query.trim().length > 0;
 
   return (
-    <PhoneFrame>
-      <main
-        id="main"
-        className="w-full flex-1 px-4 pb-36 pt-4"
-      >
+    <div className="mx-auto w-full max-w-[430px]">
+      <main id="main" className="w-full flex-1 px-4 pb-36 pt-4">
         <div id="top" className="scroll-mt-20">
-          <AppBar
-            appLogo={appLogo}
-            appName={appName}
-            subtitle={
-              primaryCount > 0
-                ? `${primaryCount} pinned · ${contacts.length} total`
-                : `${contacts.length} contacts saved`
-            }
-            showSignIn
+          <UserHeader
+            logo={appLogo}
+            activeTab={activeTab}
+            onNavigate={handleTabChange}
+            onSearch={focusSearch}
+            emergencyTel={emergencyTel}
           />
         </div>
 
@@ -265,7 +260,7 @@ export default function PublicHome() {
         <OfflineBanner />
 
         {/* Prioritized action — front and center right below the hero */}
-        <EmergencyBanner />
+        <EmergencyBanner image={bannerImage} />
 
         <div className="relative mb-4 mt-2">
           <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -281,30 +276,23 @@ export default function PublicHome() {
         </div>
 
         <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1">
-          {types.slice(0, showAllTypes ? undefined : 3).map((t) => {
-            const Icon = categoryIcon(t.icon);
-            const activeCls = categoryStyle(t.color).active;
-            return (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setFilter(filter === t.value ? "ALL" : t.value)}
-                className={chipClass(filter === t.value, activeCls)}
-              >
-                <Icon className="h-4 w-4" />
-                {t.label}
-              </button>
-            );
-          })}
-          {types.length > 3 && (
-            <button
-              type="button"
-              onClick={() => setShowAllTypes(!showAllTypes)}
-              className="inline-flex min-h-[36px] items-center gap-1 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              {showAllTypes ? "Less" : `+${types.length - 3}`}
-            </button>
-          )}
+          {types
+            .filter((t) => /(fire|police|rescue)/i.test(`${t.value} ${t.label}`))
+            .map((t) => {
+              const Icon = categoryIcon(t.icon);
+              const activeCls = categoryStyle(t.color).active;
+              return (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setFilter(filter === t.value ? "ALL" : t.value)}
+                  className={chipClass(filter === t.value, activeCls)}
+                >
+                  <Icon className="h-4 w-4" />
+                  {t.label}
+                </button>
+              );
+            })}
         </div>
 
         {searching && !loading && (
@@ -424,7 +412,7 @@ export default function PublicHome() {
                 </ul>
               )}
 
-              {visibleContacts.length > 0 && (
+              {path.length > 0 && visibleContacts.length > 0 && (
                 <div className={childGroups.length > 0 ? "mt-6" : undefined}>
                   {childGroups.length > 0 && (
                     <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
@@ -554,6 +542,6 @@ export default function PublicHome() {
 
         <GuestBottomNav activeTab={activeTab} onTabChange={handleTabChange} emergencyNumber={emergencyNumber} onSearch={focusSearch} />
       </main>
-    </PhoneFrame>
+    </div>
   );
 }

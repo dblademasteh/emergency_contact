@@ -34,7 +34,7 @@ export function GuestBottomNav({ activeTab, onTabChange }: Props) {
     "bg-linear-to-br from-rose-500 to-red-600 text-white shadow-lg shadow-rose-600/30 group-hover:scale-105";
 
   const buttonCls = (active: boolean) =>
-    `group flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 rounded-2xl py-2 transition active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50 ${
+    `group relative flex min-h-[60px] flex-1 flex-col items-center justify-center gap-1 px-1 py-2 transition active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-500/50 ${
       active ? activeText : inactiveText
     } hover:bg-slate-100/80 dark:hover:bg-slate-800/80`;
 
@@ -56,22 +56,29 @@ export function GuestBottomNav({ activeTab, onTabChange }: Props) {
         <span className={`${iconBox} ${active ? activeIconBox : inactiveIconBox}`}>
           <Icon className="h-[18px] w-[18px]" />
         </span>
-        <span className="text-[11px] font-bold tracking-wide">{label}</span>
+        {active && (
+          <span
+            aria-hidden="true"
+            className="absolute inset-x-8 top-0 h-[3px] rounded-b-full bg-linear-to-r from-rose-500 to-red-600"
+          />
+        )}
+        <span className="whitespace-nowrap text-[11px] font-bold tracking-wide">{label}</span>
       </button>
     );
   };
 
   return (
-    <nav
-      aria-label="Primary"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4"
-      style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
-    >
-      <div className="pointer-events-auto mx-auto flex max-w-[400px] items-stretch gap-1 rounded-3xl border border-slate-200/70 bg-white/90 p-1.5 shadow-[0_12px_40px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90">
-        {renderItem("home", "Home", HomeIcon)}
-        {renderItem("hotlines", "Hotlines", PhoneIcon)}
-        {renderItem("tips", "Safety Tips", ShieldIcon)}
-        {renderItem("more", "More", MoreIcon)}
+    <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-40">
+      <div
+        className="mx-auto max-w-[430px] border-t border-slate-200/80 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/95"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="grid grid-cols-4">
+          {renderItem("home", "Home", HomeIcon)}
+          {renderItem("hotlines", "Hotlines", PhoneIcon)}
+          {renderItem("tips", "Safety Tips", ShieldIcon)}
+          {renderItem("more", "More", MoreIcon)}
+        </div>
       </div>
     </nav>
   );
