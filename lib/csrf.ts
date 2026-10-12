@@ -1,7 +1,6 @@
 import { randomBytes, createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { useCallback, useEffect, useState } from "react";
 
 const CSRF_COOKIE = "ec_csrf_token";
 const CSRF_HEADER = "x-csrf-token";
@@ -92,72 +91,4 @@ export function withCsrfProtection(request: NextRequest): NextResponse | null {
   }
 
   return null;
-}
-
-/**
- * Client-side helper to fetch the CSRF token from the server.
- */
-export async function fetchCsrfToken(): Promise<string | null> {
-  try {
-    const res = await fetch("/api/csrf", { credentials: "include" });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.token ?? null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Client-side helper to make authenticated requests with CSRF protection.
- */
-export async function csrfFetch(
-  url: string,
-  options: RequestInit = {}
-): Promise<Response> {
-  const token = await fetchCsrfToken();
-
-  const headers = new Headers(options.headers);
-  if (token) {
-    headers.set(CSRF_HEADER, token);
-  }
-
-  return fetch(url, {
-    ...options,
-    headers,
-    credentials: "include",
-  });
-}
-
-/**
- * React hook for managing CSRF-protected form submissions.
- */
-export function useCsrfFetch() {
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchCsrfToken().then((t) => {
-      setToken(t);
-      setLoading(false);
-    });
-  }, []);
-
-  const csrfFetch = useCallback(
-    async (url: string, options: RequestInit = {}) => {
-      const headers = new Headers(options.headers);
-      if (token) {
-        headers.set(CSRF_HEADER, token);
-      }
-
-      return fetch(url, {
-        ...options,
-        headers,
-        credentials: "include",
-      });
-    },
-    [token]
-  );
-
-  return { csrfFetch, loading };
 }
